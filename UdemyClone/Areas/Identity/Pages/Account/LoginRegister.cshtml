@@ -1,0 +1,153 @@
+﻿@page
+@model LoginRegisterModel
+@{
+    ViewData["Title"] = "Login";
+
+    var signInTabTextClass = Model.ActiveTab == "SignUp" ? "text-gray-500" : "text-gray-900";
+    var signUpTabTextClass = Model.ActiveTab == "SignUp" ? "text-gray-900" : "text-gray-500";
+    var signInBarClass = Model.ActiveTab == "SignUp" ? "hidden h-1 w-full bg-orange-500" : "h-1 w-full bg-orange-500";
+    var signUpBarClass = Model.ActiveTab == "SignUp" ? "h-1 w-full bg-orange-500" : "hidden h-1 w-full bg-orange-500";
+    var signInFormClass = Model.ActiveTab == "SignUp" ? "hidden px-8 py-6" : "px-8 py-6";
+    var signUpFormClass = Model.ActiveTab == "SignUp" ? "px-8 py-6" : "hidden px-8 py-6";
+
+}
+
+<div class="mt-10 mb-5 flex justify-center">
+    <div class="w-full max-w-md border border-gray-200 bg-white shadow-sm">
+        <!--Tab Headers-->
+        <div class="flex text-xl font-medium">
+            <div class="w-1/2 cursor-pointer" id="signInTab">
+                <div class="my-2 text-center @signInTabTextClass">Sign In</div>
+                <div class="@signInBarClass"></div>
+            </div>
+            <div class="w-1/2 cursor-pointer" id="signUpTab">
+                <div class="my-2 text-center @signUpTabTextClass">Sign Up</div>
+                <div class="@signUpBarClass"></div>
+            </div>
+        </div>
+
+        <!--Sign In-->
+        <div class="@signInFormClass" id="signInForm">
+            <form method="post" asp-page-handler="Login" asp-route-returnUrl="@Model.ReturnUrl">
+                <div>
+                    <label asp-for="@Model.LoginInput.Email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                    <input asp-for="@Model.LoginInput.Email" class="mt-1.5 w-full border border-gray-300 p-2 outline-none" />
+                    <span asp-validation-for="@Model.LoginInput.Email" class="block text-red-600"></span>
+                </div>
+                <div class="mt-5">
+                    <label asp-for="@Model.LoginInput.Password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" asp-for="@Model.LoginInput.Password" class="mt-1.5 w-full border border-gray-300 p-2 outline-none" />
+                    <span asp-validation-for="@Model.LoginInput.Password" class="block text-red-600"></span>
+                    <div asp-validation-summary="ModelOnly" class="mb-4 font-medium text-red-600"></div>
+                </div>
+                <div class="mt-5 flex justify-between">
+                    <div class="flex items-center">
+                        <input asp-for="@Model.LoginInput.RememberMe" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500" />
+                        <label asp-for="@Model.LoginInput.RememberMe" class="ml-3 text-sm text-gray-500"></label>
+                    </div>
+                    <a asp-page="./ForgotPassword" class="text-sm font-medium text-blue-600 hover:underline">Forgot Password?</a>
+                </div>
+                <button type="submit" class="mt-5 w-full cursor-pointer rounded-xs bg-orange-500 py-2.5 text-sm font-medium text-white hover:bg-orange-600">Sign in</button>
+            </form>
+
+            <!--Separator-->
+            <div class="my-6 flex items-center">
+                <div class="h-px flex-grow bg-gray-300"></div>
+                <p class="mx-2 text-sm font-light text-gray-500">or</p>
+                <div class="h-px flex-grow bg-gray-300"></div>
+            </div>
+
+            <!--Social login-->
+            <div class="mt-2 flex flex-col space-y-3">
+                <button type="submit" class="relative flex items-center justify-center rounded border border-gray-300 py-2 text-sm font-light">
+                    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 48 48" class="absolute left-4 h-6 w-6">
+                        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
+                        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
+                        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                    </svg>
+                    <span>Login with Google</span>
+                </button>
+                <button type="submit" class="relative flex items-center justify-center rounded border border-gray-300 py-2 text-sm font-light">
+                    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 48 48" class="absolute left-4 h-6 w-6">
+                        <path fill="#039be5" d="M24 5A19 19 0 1 0 24 43A19 19 0 1 0 24 5Z"></path>
+                        <path fill="#fff" d="M26.572,29.036h4.917l0.772-4.995h-5.69v-2.73c0-2.075,0.678-3.915,2.619-3.915h3.119v-4.359c-0.548-0.074-1.707-0.236-3.897-0.236c-4.573,0-7.254,2.415-7.254,7.917v3.323h-4.701v4.995h4.701v13.729C22.089,42.905,23.032,43,24,43c0.875,0,1.729-0.08,2.572-0.194V29.036z"></path>
+                    </svg>
+                    <span>Login with Facebook</span>
+                </button>
+            </div>
+        </div>
+        <!--Sign Up-->
+        <div class="@signUpFormClass" id="signUpForm">
+            <form method="post" asp-page-handler="Register" asp-route-returnUrl="@Model.ReturnUrl">
+                <div>
+                    <label asp-for="@Model.RegisterInput.FirstName" class="block text-sm font-medium text-gray-700">First Name</label>
+                    <input asp-for="@Model.RegisterInput.FirstName" class="mt-1.5 w-full border border-gray-300 p-2 outline-none" />
+                    <span asp-validation-for="@Model.RegisterInput.FirstName" class="block text-red-600"></span>
+                </div>
+
+                <div class="mt-5">
+                    <label asp-for="@Model.RegisterInput.LastName" class="block text-sm font-medium text-gray-700">Last Name</label>
+                    <input asp-for="@Model.RegisterInput.LastName" class="mt-1.5 w-full border border-gray-300 p-2 outline-none" />
+                    <span asp-validation-for="@Model.RegisterInput.LastName" class="block text-red-600"></span>
+                </div>
+                <div class="mt-5">
+                    <label asp-for="@Model.RegisterInput.Email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                    <input asp-for="@Model.RegisterInput.Email" class="mt-1.5 w-full border border-gray-300 p-2 outline-none" />
+                    <span asp-validation-for="@Model.RegisterInput.Email" class="block text-red-600"></span>
+                </div>
+                <div class="mt-5">
+                    <label asp-for="@Model.RegisterInput.Password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" asp-for="@Model.RegisterInput.Password" class="mt-1.5 w-full border border-gray-300 p-2 outline-none" />
+                    <span asp-validation-for="@Model.RegisterInput.Password" class="block text-red-600"></span>
+                </div>
+                <div class="mt-5">
+                    <label asp-for="@Model.RegisterInput.ConfirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    <input type="password" asp-for="@Model.RegisterInput.ConfirmPassword" class="mt-1.5 w-full border border-gray-300 p-2 outline-none" />
+                    <span asp-validation-for="@Model.RegisterInput.ConfirmPassword" class="block text-red-600"></span>
+                    <div asp-validation-summary="ModelOnly" class="mb-4 font-medium text-red-600"></div>
+                </div>
+                <div class="mt-5 flex items-center">
+                    <input id="agreeToTermInput" asp-for="@Model.RegisterInput.AgreeToTerms" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500" />
+                    <label asp-for="@Model.RegisterInput.AgreeToTerms" class="ml-3 text-sm text-gray-500">
+                        I agree to EduPress <span class="font-medium text-blue-500">Terms of Condition</span> and <span class="font-medium text-blue-500">Privacy Policy</span>
+                    </label>
+                </div>
+                <button id="signUpButton" type="submit" class="mt-5 w-full cursor-pointer rounded-xs bg-orange-500 py-2.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-orange-300">Sign up</button>
+            </form>
+
+            <!--Separator-->
+            <div class="my-6 flex items-center">
+                <div class="h-px flex-grow bg-gray-300"></div>
+                <p class="mx-2 text-sm font-light text-gray-500">or</p>
+                <div class="h-px flex-grow bg-gray-300"></div>
+            </div>
+
+            <!--Social sign up-->
+            <div class="mt-2 flex flex-col space-y-3">
+                <button type="submit" class="relative flex items-center justify-center rounded border border-gray-300 py-2 text-sm font-light">
+                    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 48 48" class="absolute left-4 h-6 w-6">
+                        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
+                        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
+                        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                    </svg>
+                    <span>Sign up with Google</span>
+                </button>
+                <button type="submit" class="relative flex items-center justify-center rounded border border-gray-300 py-2 text-sm font-light">
+                    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0 0 48 48" class="absolute left-4 h-6 w-6">
+                        <path fill="#039be5" d="M24 5A19 19 0 1 0 24 43A19 19 0 1 0 24 5Z"></path>
+                        <path fill="#fff" d="M26.572,29.036h4.917l0.772-4.995h-5.69v-2.73c0-2.075,0.678-3.915,2.619-3.915h3.119v-4.359c-0.548-0.074-1.707-0.236-3.897-0.236c-4.573,0-7.254,2.415-7.254,7.917v3.323h-4.701v4.995h4.701v13.729C22.089,42.905,23.032,43,24,43c0.875,0,1.729-0.08,2.572-0.194V29.036z"></path>
+                    </svg>
+                    <span>Sign up with Facebook</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/LoginRegisterSwitch.js"></script>
+}

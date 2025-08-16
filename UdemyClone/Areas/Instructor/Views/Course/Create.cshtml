@@ -1,0 +1,195 @@
+﻿@{
+    Layout = null;
+    int currentStep = ViewBag.CurrentStep ?? 1;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Create new course</title>
+    <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
+</head>
+<body class="bg-gray-50">
+    <div>
+        <div class="flex items-center justify-between px-6 py-4">
+            <!-- Logo with border separator -->
+            <div class="flex items-center">
+                <img src="~/img/logo.svg" alt="Logo" class="h-8" />
+                <div class="mx-6 h-8 border-r border-gray-300"></div>
+            </div>
+
+            <!-- Step indicator -->
+            <div class="flex-1">
+                <span id="stepIndicator" class="text-sm font-medium text-gray-700">
+                    Step @currentStep of 2
+                </span>
+            </div>
+
+            <!-- Exit button -->
+            <div>
+                <button type="button" id="exitBtn" class="inline-flex cursor-pointer items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50">
+                    Exit
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="h-1 w-full bg-gray-200">
+            <div id="progressBar" class="h-1 bg-orange-500 transition-all duration-300 ease-out" style="width: @(currentStep * 50)%"></div>
+        </div>
+    </div>
+    <div id="step-container">
+        <!-- Dynamic content will be loaded here -->
+    </div>
+
+    <script>
+        let currentStep = @currentStep;
+
+        // Load initial step content
+        loadStepContent(currentStep, false);
+
+        // Handle exit button click
+        document.getElementById('exitBtn').addEventListener('click', function() {
+            // Clear any stored form data
+            localStorage.removeItem('courseTitle');
+            window.location.href = '@Url.Action("Index", "Course")';
+        });
+
+        function loadStepContent(step, updateHistory = true) {
+            fetch(`/Instructor/Course/GetStepContent?step=${step}`)
+                .then(response => response.text()) //Đang load html, không phải json
+                .then(html => {
+                    document.getElementById('step-container').innerHTML = html;
+                    currentStep = step;
+
+                    // Update progress bar
+                    updateProgressBar(step);
+
+                    // Update step indicator
+                    updateStepIndicator(step);
+
+                    if (updateHistory) {
+                        // Update URL without page reload
+                        history.pushState({ step: step }, '', `/Instructor/Course/Create/${step}`);
+                    }
+
+                    // Initialize step-specific JavaScript
+                    if (step === 1 && typeof initializeStepOne === 'function') {
+                        initializeStepOne();
+                    } 
+
+                    // Attach event listeners to new buttons
+                    attachEventListeners();
+                })
+                .catch(error => {
+                    console.error('Error loading step content:', error);
+                });
+        }
+
+        function updateProgressBar(step) {
+            const progressBar = document.getElementById('progressBar');
+            if (progressBar) {
+                progressBar.style.width = `${step * 50}%`;
+            }
+        }
+
+        function updateStepIndicator(step) {
+            const stepIndicator = document.getElementById('stepIndicator');
+            if (stepIndicator) {
+                stepIndicator.textContent = `Step ${step} of 2`;
+            }
+        }
+
+        function attachEventListeners() {
+            // Next button
+            const nextBtn = document.querySelector('.next-btn');
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    if (currentStep < 2) {
+                        loadStepContent(currentStep + 1);
+                    }
+                });
+            }
+
+            // Previous button
+            const prevBtn = document.querySelector('.prev-btn');
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    if (currentStep > 1) {
+                        loadStepContent(currentStep - 1);
+                    }
+                });
+            }
+
+            // Complete button
+            const completeBtn = document.querySelector('.complete-btn');
+            if (completeBtn) {
+                completeBtn.addEventListener('click', () => {
+                    handleCourseCreation();
+                });
+            }
+
+        }
+
+        function handleCourseCreation(){
+            const title = localStorage.getItem('courseTitle');
+            const categorySelect = document.getElementById('categorySelect');
+            const categoryId = categorySelect ? categorySelect.value : null;
+
+            if(!title || title.trim().length < 10){
+                alert('Please enter a valid course title with at least 10 characters.');
+                return;
+            }
+
+            const courseData = {
+                title: title.trim(),
+                categoryId: categoryId || null
+            }
+
+            //Loading
+            const completeBtn = document.querySelector('.complete-btn');
+            const originalText = completeBtn.textContent;
+            completeBtn.disabled = true;
+            completeBtn.textContent = 'Creating course...';
+
+            fetch('/Instructor/Course/Create',{
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(courseData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success){
+                    localStorage.removeItem('courseTitle');
+                    window.location.href = `/Instructor/Course/Manage/${data.courseId}/intended-learners`;
+                } else{
+                    alert(data.message || 'An error occurred while creating the course.');
+                    completeBtn.disabled = false;
+                    completeBtn.textContent = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error creating course:', error);
+                alert('An error occurred while creating the course. Please try again.');
+                completeBtn.disabled = false;
+                completeBtn.textContent = originalText;
+            });
+
+        }
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function(e) {
+            if (e.state && e.state.step) {
+                loadStepContent(e.state.step, false);
+            }
+        });
+
+        // Set initial state
+        history.replaceState({ step: currentStep }, '', `/Instructor/Course/Create/${currentStep}`);
+    </script>
+    <script src="~/js/CreateCodeStepOne.js"></script>
+</body>
+</html>

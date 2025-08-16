@@ -1,0 +1,406 @@
+﻿@{
+    Layout = null;
+    string currentSection = ViewBag.CurrentSection ?? "intended-learners";
+}
+
+@model Course;
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - EduPress</title>
+    <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
+    <!-- SortableJS CSS for styling -->
+    <style>
+        .sortable-ghost {
+            opacity: 0.4;
+        }
+
+        .sortable-chosen {
+            transform: scale(1.02);
+        }
+
+        .sortable-drag {
+            transform: rotate(5deg);
+        }
+
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!--Return header-->
+    <div class="flex items-center justify-between border-b border-gray-200 bg-orange-500 px-8 py-4">
+        <div class="flex items-center space-x-10">
+            <a id="back-to-courses-link" href="/Instructor/Course"
+               class="-mx-3 -my-2 flex items-center rounded px-3 py-2 text-white hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
+                    <path d="m15 18-6-6 6-6" />
+                </svg>
+                <span class="font-medium">Back to Courses</span>
+            </a>
+
+            <!-- Status Badge -->
+            @{
+                string badgeClass = Model.Status switch
+                {
+                    "Published" => "bg-green-100 text-green-800 border-green-200",
+                    "Private" => "bg-blue-100 text-blue-800 border-blue-200",
+                    _ => "bg-yellow-100 text-yellow-800 border-yellow-200" // Draft
+                };
+            }
+
+            <span class="ms-3 items-center rounded-full border px-3 py-1 text-sm @badgeClass font-medium">
+                @Model.Status
+            </span>
+
+        </div>
+
+        <!-- Save Button -->
+        <div class="flex items-center">
+            <button type="button" id="save-button"
+                    class="inline-flex cursor-pointer items-center rounded-lg bg-white px-4 py-2 text-sm font-medium text-orange-600 shadow-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled>
+                Save
+            </button>
+        </div>
+    </div>
+    <div class="flex min-h-screen">
+        <!-- Left Navigation -->
+        <div class="w-72 bg-white shadow-lg">
+            <div class="p-6">
+                <h2 class="mb-6 items-center px-4 text-xl font-bold text-gray-800">Plan your course</h2>
+                <nav class="space-y-2">
+                    <a data-tab="intended-learners" class="nav-item flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users-round-icon lucide-users-round mr-3 h-5 w-5"><path d="M18 21a8 8 0 0 0-16 0" /><circle cx="10" cy="8" r="5" /><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" /></svg>
+                        Intended Learners
+                    </a>
+                    <a data-tab="curriculum" class="nav-item flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-video-icon lucide-video mr-3 h-5 w-5"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" /><rect x="2" y="6" width="14" height="12" rx="2" /></svg>
+                        Curriculum
+                    </a>
+                    <a data-tab="landing-page" class="nav-item flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-notepad-text-icon lucide-notepad-text mr-3 h-5 w-5"><path d="M8 2v4" /><path d="M12 2v4" /><path d="M16 2v4" /><rect width="16" height="18" x="4" y="4" rx="2" /><path d="M8 10h6" /><path d="M8 14h8" /><path d="M8 18h5" /></svg>
+                        Course Landing Page
+                    </a>
+                    <a data-tab="pricing" class="nav-item flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-dollar-sign-icon lucide-circle-dollar-sign mr-3 h-5 w-5"><circle cx="12" cy="12" r="10" /><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" /><path d="M12 18V6" /></svg>
+                        Pricing
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 p-8">
+            <div id="content-area">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="~/js/AddCourseOutcomeAndRequirementField.js"></script>
+    <script src="~/js/GetSubcategoryByCategory.js"></script>
+    <script src="~/js/SimpleTextEditor.js"></script>
+    <script src="~/js/UpLoadImageAndVideo.js"></script>
+    <script src="~/js/SaveCourseOutcomeAndRequirement.js"></script>
+    <script src="~/js/SaveLandingPage.js"></script>
+    <script>
+        let currentSection = '@currentSection';
+        const courseId = '@Model.Id';
+        let hasUnsavedChanges = false;
+        let originalFormData = null;
+
+        // Function to enable/disable save button
+        function toggleSaveButton() {
+            const saveButton = document.getElementById('save-button');
+            if (hasUnsavedChanges) {
+                saveButton.disabled = false;
+                saveButton.classList.remove('disabled:cursor-not-allowed', 'disabled:opacity-50');
+            } else {
+                saveButton.disabled = true;
+                saveButton.classList.add('disabled:cursor-not-allowed', 'disabled:opacity-50');
+            }
+        }
+
+        // Function to capture original form data
+        function captureOriginalFormData() {
+            if (currentSection === 'intended-learners') {
+                const form = document.getElementById('intended-learners-form');
+                if (form) {
+                    const formData = new FormData(form);
+                    originalFormData = {
+                        LearningOutcomes: formData.getAll('LearningOutcomes[]'),
+                        Prerequisites: formData.getAll('Prerequisites[]')
+                    };
+                }
+            } else if (currentSection === 'landing-page') {
+                const form = document.getElementById('landing-page-form');
+                if(form){
+                    const formData = new FormData(form);
+                    originalFormData = {
+                        Title: formData.get('Title'),
+                        Subtitle: formData.get('Subtitle'),
+                        Description: formData.get('Description'),
+                        CourseLevelId: formData.get('CourseLevelId'),
+                        CategoryId: formData.get('CategoryId'),
+                        SubcategoryId: formData.get('SubcategoryId'),
+                        ImageFile: formData.get('ImageFile'),
+                        VideoFile: formData.get('VideoFile'),
+                    };
+                }
+            }
+            hasUnsavedChanges = false;
+            toggleSaveButton();
+        }
+
+        // Function to check if form data has changed
+        function checkForChanges() {
+            //intended-learners
+            if (currentSection === 'intended-learners' && originalFormData) {
+                const form = document.getElementById('intended-learners-form');
+                if (form) {
+                    const formData = new FormData(form);
+                    const currentData = {
+                        LearningOutcomes: formData.getAll('LearningOutcomes[]'),
+                        Prerequisites: formData.getAll('Prerequisites[]')
+                    };
+
+                    // Compare arrays
+                    const learningOutcomesChanged = !arraysEqual(originalFormData.LearningOutcomes, currentData.LearningOutcomes);
+                    const prerequisitesChanged = !arraysEqual(originalFormData.Prerequisites, currentData.Prerequisites);
+
+                    hasUnsavedChanges = learningOutcomesChanged || prerequisitesChanged;
+                    toggleSaveButton();
+                }
+            }
+
+            //landing-page
+            else if (currentSection === 'landing-page' && originalFormData) {
+                const form = document.getElementById('landing-page-form');
+                if(form){
+                    const formData = new FormData(form);
+                    currentData = {
+                        Title: formData.get('Title'),
+                        Subtitle: formData.get('Subtitle'),
+                        Description: formData.get('Description'),
+                        CourseLevelId: formData.get('CourseLevelId'),
+                        CategoryId: formData.get('CategoryId'),
+                        SubcategoryId: formData.get('SubcategoryId'),
+                        ImageFile: formData.get('ImageFile'),
+                        VideoFile: formData.get('VideoFile'),
+                    };
+
+                    const titleChanged = originalFormData.Title !== currentData.Title;
+                    const subtitleChanged = originalFormData.Subtitle !== currentData.Subtitle;
+                    const descriptionChanged = originalFormData.Description !== currentData.Description;
+                    const levelChanged = originalFormData.CourseLevelId !== currentData.CourseLevelId;
+                    const categoryChanged = originalFormData.CategoryId !== currentData.CategoryId;
+                    const subcategoryChanged = originalFormData.SubcategoryId !== currentData.SubcategoryId;
+                    const imageChanged = originalFormData.ImageFile !== currentData.ImageFile;
+                    const videoChanged = originalFormData.VideoFile !== currentData.VideoFile;
+
+                    hasUnsavedChanges = titleChanged || subtitleChanged || descriptionChanged ||
+                                       levelChanged || categoryChanged || subcategoryChanged ||
+                                       imageChanged || videoChanged;
+                    toggleSaveButton();
+                }
+            }
+        }
+
+        // Helper function to compare arrays
+        function arraysEqual(a, b) {
+            if (a.length !== b.length) return false;
+            for (let i = 0; i < a.length; i++) {
+                if (a[i] !== b[i]) return false;
+            }
+            return true;
+        }
+
+        // Expose functions globally for use in other scripts
+        window.captureOriginalFormData = captureOriginalFormData;
+        window.checkForChanges = checkForChanges;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Load initial section content
+            loadSectionContent(currentSection, false);
+
+            // Handle navigation clicks
+            const navItems = document.querySelectorAll('.nav-item');
+
+            navItems.forEach(function(navItem) {
+                navItem.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    if(!hasUnsavedChanges){
+                        changeNavStyle(this);
+                        const section = this.dataset.tab;
+                        loadSectionContent(section);
+                    }
+                    else if(confirm("Changes you made may not be saved.")){
+                        changeNavStyle(this);
+                        const section = this.dataset.tab;
+                        loadSectionContent(section);
+                        hasUnsavedChanges = false;
+                    }
+                    else{
+                        return;
+                    }
+                });
+            });
+
+            function changeNavStyle(clickedItem) {
+                // Remove active class from all nav items
+                navItems.forEach(function(item) {
+                    item.classList.remove('text-orange-500');
+                    item.classList.add('text-gray-700');
+                    item.classList.remove('font-bold')
+                });
+
+                // Add active class to clicked item
+                clickedItem.classList.remove('text-gray-700');
+                clickedItem.classList.add('text-orange-500');
+                clickedItem.classList.add('font-bold')
+            }
+
+            // Set active state for current section
+            const currentTab = document.querySelector(`[data-tab="${currentSection}"]`);
+            if (currentTab) {
+                currentTab.classList.remove('text-gray-700');
+                currentTab.classList.add('text-orange-500');
+                currentTab.classList.add('font-bold');
+            }
+
+            document.getElementById('back-to-courses-link').addEventListener('click', function(e){
+                e.preventDefault();
+
+                if(!hasUnsavedChanges){
+                    window.location.href = '@Url.Action("Index", "Course", new { area = "Instructor" })';
+                } else if(confirm("Changes you made may not be saved.")){
+                    window.location.href = '@Url.Action("Index", "Course", new { area = "Instructor" })';
+                } else {
+                    return;
+                }
+            });
+
+            document.getElementById('save-button').addEventListener('click', function(){
+                if (this.disabled) return; // Prevent action if disabled
+
+                if(currentSection === 'intended-learners'){
+                    saveIntendedLearners();
+                } else if(currentSection === 'landing-page'){
+                    saveLandingPage();
+                }
+            });
+
+            function loadSectionContent(section, updateHistory = true) {
+                fetch(`/Instructor/Course/GetPartialView?viewName=${section}&courseId=${courseId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(function(data) {
+                    document.getElementById('content-area').innerHTML = data;
+                    currentSection = section;
+
+                    // Reinitialize sortable functionality after content loads
+                    if (typeof window.initializeAllSortables === 'function') {
+                        window.initializeAllSortables();
+                    }
+
+                    if (typeof window.initializeCategorySubcategory === 'function') {
+                        window.initializeCategorySubcategory();
+                    }
+
+                    if (typeof window.InitializeTextEditor === 'function') {
+                        window.InitializeTextEditor();
+                    }
+
+                    if (typeof window.initializeImageUpload === 'function') {
+                        window.initializeImageUpload();
+                    }
+
+                    if(typeof window.initializeVideoUpload === 'function'){
+                        window.initializeVideoUpload();
+                    }
+
+                    if(typeof window.addInputListener === 'function'){
+                        window.addInputListener();
+                    }
+
+                    // Add event listeners for landing page form changes
+                    if (section === 'landing-page') {
+                        setupLandingPageChangeListeners();
+                    }
+
+                    // Capture original form data after content loads
+                    setTimeout(() => {
+                        captureOriginalFormData();
+                    }, 100);
+
+                    if (updateHistory) {
+                        // Update URL without page reload
+                        history.pushState({ section: section }, '', `/Instructor/Course/Manage/${courseId}/${section}`);
+                    }
+                })
+                .catch(function(error) {
+                    document.getElementById('content-area').innerHTML =
+                        '<div class="py-12 text-center"><p class="text-red-500">Error loading content. Please try again.</p></div>';
+                });
+            }
+
+            function setupLandingPageChangeListeners() {
+                // Add change listeners to all form inputs
+                const inputs = document.querySelectorAll('input[name="Title"], input[name="Subtitle"], textarea[name="Description"], select[name="CourseLevelId"], select[name="CategoryId"], select[name="SubcategoryId"], input[name="ImageFile"], input[name="VideoFile"]');
+                inputs.forEach(input => {
+                    input.addEventListener('input', checkForChanges);
+                    input.addEventListener('change', checkForChanges);
+                });
+
+                // Special handling for TinyMCE editor if present
+                if (typeof tinymce !== 'undefined') {
+                    tinymce.get('course-description')?.on('input', checkForChanges);
+                }
+            }
+
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', function(e) {
+                if (e.state && e.state.section) {
+                    // Remove active class from all nav items
+                    navItems.forEach(function(item) {
+                        item.classList.remove('text-orange-500');
+                        item.classList.add('text-gray-700');
+                        item.classList.remove('font-bold')
+                    });
+
+                    // Set active state for the section from history
+                    const historyTab = document.querySelector(`[data-tab="${e.state.section}"]`);
+                    if (historyTab) {
+                        historyTab.classList.remove('text-gray-700');
+                        historyTab.classList.add('text-orange-500');
+                        historyTab.classList.add('font-bold');
+                    }
+
+                    loadSectionContent(e.state.section, false);
+                }
+            });
+
+            // Set initial state
+            history.replaceState({ section: currentSection }, '', `/Instructor/Course/Manage/${courseId}/${currentSection}`);
+        });
+    </script>
+    <script src="https://cdn.tiny.cloud/1/023mginrktpq7ta9h9pgx6k4gl3xxi50owgxflzdxel98185/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
+
+</body>
+</html>

@@ -1,0 +1,62 @@
+﻿@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <div class="relative z-10" id="dropDownContainer">
+        <div id="dropdownButton" class="cursor-pointer rounded-full border-2 border-orange-500 p-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+        </div>
+        <div id="dropdownMenu" class="absolute right-0 mt-2 hidden divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white whitespace-nowrap shadow-sm">
+            <div class="flex items-center gap-2 px-3 py-2">
+                <div class="rounded-full border-2 border-orange-500 p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                </div>
+                <div>
+                    @{
+                        var user = UserManager.GetUserAsync(User).Result;
+                        var roles = UserManager.GetRolesAsync(user).Result;
+
+                        if (roles.Contains(RoleNames.Admin))
+                        {
+                            <div class="text-gray-800">@user.FirstName</div>
+                        }
+                        else
+                        {
+                            <div class="text-gray-800">@user.FirstName @user.LastName</div>
+                        }
+                        <div class="text-sm text-gray-400">@user.Email</div>
+                    }
+                </div>
+            </div>
+            <ul class="text-sm text-gray-800">
+                <li>
+                    <div class="flex cursor-pointer items-center gap-2 px-3 py-3.5 hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-cog-icon lucide-user-cog"><path d="M10 15H6a4 4 0 0 0-4 4v2" /><path d="m14.305 16.53.923-.382" /><path d="m15.228 13.852-.923-.383" /><path d="m16.852 12.228-.383-.923" /><path d="m16.852 17.772-.383.924" /><path d="m19.148 12.228.383-.923" /><path d="m19.53 18.696-.382-.924" /><path d="m20.772 13.852.924-.383" /><path d="m20.772 16.148.924.383" /><circle cx="18" cy="15" r="3" /><circle cx="9" cy="7" r="4" /></svg>
+                        <a asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage your profile">Profile Settings</a>
+                    </div>
+                </li>
+                <li>
+                    <div class="flex cursor-pointer items-center gap-2 px-3 py-3.5 hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-question-mark-icon lucide-circle-question-mark"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg>
+                        <a href="#" title="Get your help">Help Center</a>
+                    </div>
+                </li>
+                <li>
+                    <div class="flex cursor-pointer items-center gap-2 px-3 py-3.5 hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                        </svg>
+                        <a href="#" title="Payment methods">Payment Methods</a>
+                    </div>
+                </li>
+            </ul>
+            <div class="flex cursor-pointer items-center gap-2 px-3 py-3.5 text-sm text-red-400 hover:bg-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1.4em" height="1.4em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-log-out-icon lucide-log-out"><path d="m16 17 5-5-5-5" /><path d="M21 12H9" /><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /></svg>
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                    <button type="submit" class="cursor-pointer">Sign out</button>
+                </form>
+            </div>
+        </div>
+    </div>
+}

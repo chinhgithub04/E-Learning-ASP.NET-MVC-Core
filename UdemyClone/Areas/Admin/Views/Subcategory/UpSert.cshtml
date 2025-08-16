@@ -1,0 +1,24 @@
+﻿@model SubcategoryViewModel
+
+<h1 class="mt-2 text-4xl font-bold">@(Model.Subcategory.Id == null? "Create" : "Update") subcategory</h1>
+<form asp-area="Admin" asp-controller="Subcategory" asp-action="UpSert" method="post">
+    <input type="hidden" asp-for="@Model.Subcategory.Id" />
+    <label class="mt-5 block text-sm font-medium text-gray-700" asp-for="@Model.Subcategory.Name">Name</label>
+    <input asp-for="@Model.Subcategory.Name" class="mt-1 w-full rounded-md border border-gray-300 p-2.5 shadow-sm outline-none focus:border-orange-600 focus:ring-2 focus:ring-orange-600" />
+    <span asp-validation-for="@Model.Subcategory.Name" class="text-red-600"></span>
+
+    <label class="mt-5 block text-sm font-medium text-gray-700" asp-for="@Model.Subcategory.CategoryId">Category</label>
+    <select asp-for="@Model.Subcategory.CategoryId" asp-items="@Model.CategoryList" class="mt-1 w-full rounded-md border border-gray-300 p-2.5 shadow-sm outline-none focus:border-orange-600 focus:ring-2 focus:ring-orange-600">
+    </select>
+    <span asp-validation-for="@Model.Subcategory.CategoryId" class="text-red-600"></span>
+    <br />
+    @if(Model.Subcategory.Id == null)
+    {
+        <button type="submit" class="mt-5 rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-orange-600">Create</button>
+    }
+    else
+    {
+        <button type="submit" class="mt-5 rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-orange-600">Update</button>
+    }
+    <a class="mt-5 inline-block rounded-lg bg-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-400" asp-area="Admin" asp-controller="Subcategory" asp-action="Index">Back to List</a>
+</form>

@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - EduPress</title>
+    <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
+</head>
+<body class="flex min-h-screen bg-gray-50">
+    <!-- Left Sidebar -->
+    <div class="fixed min-h-screen w-64 border-r border-gray-300 bg-white">
+        <!-- Logo Section -->
+        <div class="px-6 py-4">
+            <a asp-area="Instructor" asp-controller="Course" asp-action="Index">
+                <img src="~/img/logo.svg" alt="Logo" title="EduPress" class="h-8" />
+            </a>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="px-2 py-4">
+            <ul class="space-y-2">
+                <li>
+                    <a asp-area="Instructor" asp-controller="Course" asp-action="Index"
+                       class="flex items-center rounded-lg px-4 py-3 @(ViewContext.RouteData.Values["Controller"].ToString() == "Course" ? "text-orange-500" : "text-gray-700") transition-colors hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
+                        <span class="font-medium">Course</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Instructor" asp-controller="Communication" asp-action="Index"
+                       class="flex items-center rounded-lg px-4 py-3 @(ViewContext.RouteData.Values["Controller"].ToString() == "Communication" ? "text-orange-500" : "text-gray-700") transition-colors hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z" /><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1" /></svg>
+                        <span class="font-medium">Communication</span>
+                    </a>
+                </li>
+                <li>
+                    <a asp-area="Instructor" asp-controller="Performance" asp-action="Index"
+                       class="flex items-center rounded-lg px-4 py-3 @(ViewContext.RouteData.Values["Controller"].ToString() == "Performance" ? "text-orange-500" : "text-gray-700") transition-colors hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-3"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+                        <span class="font-medium">Performance</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 flex-1">
+        <!-- Top Header -->
+        <header class="sticky top-0 z-10 bg-white">
+            <div class="flex items-center justify-end px-6 py-4">
+                <div class="flex items-center space-x-6">
+                    <!-- Student Mode Link -->
+                    <div class="group relative mr-6">
+                        <a asp-area="User" asp-action="Index" asp-controller="Home" class="flex items-center font-medium text-gray-600 hover:text-orange-500">
+                            Student
+                        </a>
+                        <span class="absolute bottom-0 left-0 h-0.5 w-0 bg-orange-500 transition-all duration-300 group-hover:w-full"></span>
+                    </div>
+
+                    <!-- Instructor Avatar -->
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="bg-white px-6 py-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/ProfileDropdownList.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

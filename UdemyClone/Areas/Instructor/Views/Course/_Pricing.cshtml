@@ -1,0 +1,114 @@
+﻿<div class="w-full">
+    <div class="mb-8">
+        <h2 class="mb-2 text-2xl font-bold text-gray-900">Pricing</h2>
+        <p class="text-gray-600">Set a price for your course and choose how you want to sell it.</p>
+    </div>
+
+    <form class="space-y-8">
+        <!-- Course Price -->
+        <div>
+            <label class="mb-4 block text-sm font-medium text-gray-700">Course Price</label>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <!-- Free Course -->
+                <div class="cursor-pointer rounded-lg border border-gray-300 p-6 transition-colors hover:border-orange-500">
+                    <div class="mb-4 flex items-center">
+                        <input type="radio" name="pricing" value="free" class="mr-3 text-orange-600 focus:ring-orange-500">
+                        <h3 class="text-lg font-semibold text-gray-900">Free</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">Create a free course to build your audience and establish your expertise.</p>
+                    <ul class="mt-4 space-y-2 text-sm text-gray-600">
+                        <li class="flex items-center">
+                            <svg class="mr-2 h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Build your reputation
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="mr-2 h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Attract more students
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Paid Course -->
+                <div class="cursor-pointer rounded-lg border border-gray-300 p-6 transition-colors hover:border-orange-500">
+                    <div class="mb-4 flex items-center">
+                        <input type="radio" name="pricing" value="paid" class="mr-3 text-orange-600 focus:ring-orange-500">
+                        <h3 class="text-lg font-semibold text-gray-900">Paid</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">Set a price for your course and earn revenue from every enrollment.</p>
+                    <ul class="mt-4 space-y-2 text-sm text-gray-600">
+                        <li class="flex items-center">
+                            <svg class="mr-2 h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Earn revenue
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="mr-2 h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            Premium positioning
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Input (shown when paid is selected) -->
+        <div id="price-input" class="hidden">
+            <label class="mb-2 block text-sm font-medium text-gray-700">Set your course price (USD)</label>
+            <div class="relative">
+                <span class="absolute top-3 left-3 text-gray-500">$</span>
+                <input type="number" class="w-full rounded-lg border border-gray-300 py-3 pr-4 pl-8 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500" 
+                       placeholder="29.99" min="0" step="0.01">
+            </div>
+            <p class="mt-2 text-sm text-gray-500">Please select the base price for your course. The price should be between $5 and $200.</p>
+        </div>
+
+        <!-- Course Level -->
+        <div>
+            <label class="mb-4 block text-sm font-medium text-gray-700">Course Level</label>
+            <select class="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500">
+                <option value="">Select level</option>
+                <option value="beginner">Beginner Level</option>
+                <option value="intermediate">Intermediate Level</option>
+                <option value="expert">Expert Level</option>
+                <option value="all">All Levels</option>
+            </select>
+        </div>
+
+        <!-- Language -->
+        <div>
+            <label class="mb-4 block text-sm font-medium text-gray-700">Course Language</label>
+            <select class="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500">
+                <option value="">Select language</option>
+                <option value="en">English</option>
+                <option value="vi">Vietnamese</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+            </select>
+        </div>
+
+        <div class="flex justify-end">
+            <button type="submit" class="rounded-lg bg-orange-600 px-6 py-3 font-medium text-white transition-colors hover:bg-orange-700">
+                Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('input[name="pricing"]').on('change', function() {
+            if ($(this).val() === 'paid') {
+                $('#price-input').removeClass('hidden');
+            } else {
+                $('#price-input').addClass('hidden');
+            }
+        });
+    });
+</script>

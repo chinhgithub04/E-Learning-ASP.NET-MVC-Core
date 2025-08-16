@@ -1,0 +1,109 @@
+﻿@model Course
+
+@{
+    var courseOutcomes = (Model.CourseOutcomes?.OrderBy(co => co.DisplayOrder).ToList()) ?? new List<CourseOutcome>();
+    var courseRequirements = (Model.CourseRequirements?.OrderBy(cr => cr.DisplayOrder).ToList()) ?? new List<CourseRequirement>();
+}
+
+<div class="w-full">
+    <div class="mb-8">
+        <h2 class="mb-2 text-2xl font-bold text-gray-900">Intended Learners</h2>
+        <p class="text-gray-600">
+            The following descriptions will be publicly visible on your <span class="font-bold">Course Landing Page</span> and will have a direct impact on your course performance. These descriptions will help learners decide if your course is right for them.
+        </p>
+    </div>
+
+    <form id="intended-learners-form" class="space-y-8">
+        <input type="hidden" name="CourseId" value="@Model.Id" />
+
+        <!-- What will students learn? -->
+        <div>
+            <label class="mb-4 block text-sm font-medium text-gray-700">
+                What will students learn in your course?
+            </label>
+            <div class="space-y-3" id="learning-outcomes-container">
+                <div class="inputs-list space-y-3">
+                    @if (courseOutcomes.Any())
+                    {
+                        @foreach (var outcome in courseOutcomes)
+                        {
+                            <div class="input-row flex items-center space-x-3">
+                                <button type="button" class="drag-handle @(courseOutcomes.Count > 1 ? "" : "hidden") cursor-grab text-gray-400 hover:text-gray-600" title="Drag to reorder">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h5 lucide lucide-align-justify-icon lucide-align-justify w-5"><path d="M3 12h18" /><path d="M3 18h18" /><path d="M3 6h18" /></svg>
+                                </button>
+                                <input type="text" name="LearningOutcomes[]" value="@outcome.Title" class="flex-1 rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
+                                       placeholder="Example: Define the roles and responsibilities of a project manager">
+                                <button type="button" class="remove-input @(courseOutcomes.Count > 1 ? "" : "hidden") cursor-pointer text-red-500 hover:text-red-700">
+                                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="input-row flex items-center space-x-3">
+                            <button type="button" class="drag-handle hidden cursor-grab text-gray-400 hover:text-gray-600" title="Drag to reorder">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h5 lucide lucide-align-justify-icon lucide-align-justify w-5"><path d="M3 12h18" /><path d="M3 18h18" /><path d="M3 6h18" /></svg>
+                            </button>
+                            <input type="text" name="LearningOutcomes[]" class="flex-1 rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
+                                   placeholder="Example: Define the roles and responsibilities of a project manager">
+                            <button type="button" class="remove-input hidden cursor-pointer text-red-500 hover:text-red-700">
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    }
+                </div>
+                <button type="button" class="add-more-btn cursor-pointer font-medium text-orange-600 hover:text-orange-700" data-container="learning-outcomes-container" data-name="LearningOutcomes[]" data-placeholder="Example: Define the roles and responsibilities of a project manager">+ Add more to your response</button>
+            </div>
+        </div>
+
+        <!-- Prerequisites -->
+        <div>
+            <label class="mb-4 block text-sm font-medium text-gray-700">
+                What are the requirements or prerequisites for taking your course?
+            </label>
+            <div class="space-y-3" id="prerequisites-container">
+                <div class="inputs-list space-y-3">
+                    @if (courseRequirements.Any())
+                    {
+                        @foreach (var requirement in courseRequirements)
+                        {
+                            <div class="input-row flex items-center space-x-3">
+                                <button type="button" class="drag-handle @(courseRequirements.Count > 1 ? "" : "hidden") cursor-grab text-gray-400 hover:text-gray-600" title="Drag to reorder">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h5 lucide lucide-align-justify-icon lucide-align-justify w-5"><path d="M3 12h18" /><path d="M3 18h18" /><path d="M3 6h18" /></svg>
+                                </button>
+                                <input type="text" name="Prerequisites[]" value="@requirement.Title" class="flex-1 rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
+                                       placeholder="Example: No programming experience needed">
+                                <button type="button" class="remove-input @(courseRequirements.Count > 1 ? "" : "hidden") cursor-pointer text-red-500 hover:text-red-700">
+                                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="input-row flex items-center space-x-3">
+                            <button type="button" class="drag-handle hidden cursor-grab text-gray-400 hover:text-gray-600" title="Drag to reorder">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h5 lucide lucide-align-justify-icon lucide-align-justify w-5"><path d="M3 12h18" /><path d="M3 18h18" /><path d="M3 6h18" /></svg>
+                            </button>
+                            <input type="text" name="Prerequisites[]" class="flex-1 rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
+                                   placeholder="Example: No programming experience needed">
+                            <button type="button" class="remove-input hidden cursor-pointer text-red-500 hover:text-red-700">
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    }
+                </div>
+                <button type="button" class="add-more-btn cursor-pointer font-medium text-orange-600 hover:text-orange-700" data-container="prerequisites-container" data-name="Prerequisites[]" data-placeholder="Example: No programming experience needed">+ Add more to your response</button>
+            </div>
+        </div>
+    </form>
+</div>

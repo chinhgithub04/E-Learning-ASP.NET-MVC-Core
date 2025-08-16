@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "build-css": "tailwindcss -i ./wwwroot/css/input.css -o ./wwwroot/css/output.css --watch",
+    "build-css-prod": "tailwindcss -i ./wwwroot/css/input.css -o ./wwwroot/css/output.css --minify"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.11",
+    "tailwindcss": "^4.1.11"
+  },
+  "-vs-binding": {
+    "ProjectOpened": [
+      "build-css"
+    ]
+  }
+}
