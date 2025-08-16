@@ -363,7 +363,7 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Ignore large media assets
-wwwroot/img/
-wwwroot/img/**
-wwwroot/video/
-wwwroot/video/**
+UdemyClone/wwwroot/img/
+UdemyClone/wwwroot/img/**
+UdemyClone/wwwroot/video/
+UdemyClone/wwwroot/video/**
