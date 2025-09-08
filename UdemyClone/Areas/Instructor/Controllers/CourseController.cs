@@ -6,6 +6,8 @@ using UdemyClone.Common.Constants;
 using UdemyClone.DataAccess.Interfaces;
 using UdemyClone.Models;
 using UdemyClone.ViewModel;
+using FFMpegCore;
+using UdemyClone.Common.Helpers;
 
 namespace UdemyClone.Areas.Instructor.Controllers
 {
@@ -54,6 +56,27 @@ namespace UdemyClone.Areas.Instructor.Controllers
                 };
 
                 _unitOfWork.Course.Add(course);
+
+                var courseSection = new CourseSection
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Title = "Introduction",
+                    DisplayOrder = 1,
+                    CourseId = course.Id
+                };
+
+                _unitOfWork.CourseSection.Add(courseSection);
+
+                var courseVideo = new CourseVideo
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Title = "Introduction",
+                    DisplayOrder = 1,
+                    CourseSectionId = courseSection.Id
+                };
+
+                _unitOfWork.CourseVideo.Add(courseVideo);
+
                 _unitOfWork.Save();
                 return Json(new { success = true, message = "Course created successfully!", courseId = course.Id });
             }
@@ -177,15 +200,23 @@ namespace UdemyClone.Areas.Instructor.Controllers
                 course.CategoryId = model.CategoryId;
                 course.SubcategoryId = model.SubcategoryId;
 
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (course.InstructorId != userId)
+                {
+                    return Json(new { success = false, message = "Unauthorized access." });
+                }
+
                 if (model.ImageFile != null && model.ImageFile.Length > 0)
                 {
-                    var imageFileName = await SaveFileAsync(model.ImageFile, "img/course");
+                    var imageFileName = await FileHelper.SaveFileAsync(model.ImageFile, $"img/course/{userId}", _webHostEnvironment);
+
+
                     if (!string.IsNullOrEmpty(imageFileName))
                     {
                         // Delete old image if exists
                         if (!string.IsNullOrEmpty(course.ImageUrl))
                         {
-                            DeleteFile(course.ImageUrl);
+                            FileHelper.DeleteFile(course.ImageUrl, _webHostEnvironment);
                         }
                         course.ImageUrl = imageFileName;
                     }
@@ -193,13 +224,13 @@ namespace UdemyClone.Areas.Instructor.Controllers
 
                 if (model.VideoFile != null && model.VideoFile.Length > 0)
                 {
-                    var videoFileName = await SaveFileAsync(model.VideoFile, "video/course");
+                    var videoFileName = await FileHelper.SaveFileAsync(model.VideoFile, $"video/course/{userId}", _webHostEnvironment);
                     if (!string.IsNullOrEmpty(videoFileName))
                     {
                         // Delete old video if exists
                         if (!string.IsNullOrEmpty(course.PromotionVideoUrl))
                         {
-                            DeleteFile(course.PromotionVideoUrl);
+                            FileHelper.DeleteFile(course.PromotionVideoUrl, _webHostEnvironment);
                         }
                         course.PromotionVideoUrl = videoFileName;
                     }
@@ -218,53 +249,356 @@ namespace UdemyClone.Areas.Instructor.Controllers
             }
         }
 
-        private async Task<string> SaveFileAsync(IFormFile file, string subDirectory)
+        [HttpPost]
+        public IActionResult SaveSectionTitle(CourseSection courseSection)
         {
             try
             {
-                var wwwRootPath = _webHostEnvironment.WebRootPath;
-                var uploadPath = Path.Combine(wwwRootPath, subDirectory);
-
-                if (!Directory.Exists(uploadPath))
+                if (string.IsNullOrEmpty(courseSection.Id))
                 {
-                    Directory.CreateDirectory(uploadPath);
+                    return Json(new { success = false, message = "Cannot find this section, please reload the page and try again!" });
                 }
-
-                var fileExtension = Path.GetExtension(file.FileName);
-                var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                var filePath = Path.Combine(uploadPath, fileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                else
                 {
-                    await file.CopyToAsync(fileStream);
-                }
+                    _unitOfWork.CourseSection.Update(courseSection);
+                    _unitOfWork.Save();
 
-                return $"/{subDirectory}/{fileName}";
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        private void DeleteFile(string filePath)
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(filePath))
-                {
-                    var wwwRootPath = _webHostEnvironment.WebRootPath;
-                    var fullPath = Path.Combine(wwwRootPath, filePath.TrimStart('/'));
-
-                    if (System.IO.File.Exists(fullPath))
-                    {
-                        System.IO.File.Delete(fullPath);
-                    }
+                    return Json(new { success = true, message = "Course section title saved successfully!" });
                 }
             }
             catch (Exception ex)
             {
-                return;
+                return Json(new { success = false, message = "An error occurred while saving the section title. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult SaveLectureTitle(CourseLectureTitleViewModel model)
+        {
+            try
+            {
+                // Add new Lecture
+                if (string.IsNullOrEmpty(model.Id))
+                {
+                    CourseVideo courseVideo = new CourseVideo
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Title = model.Title,
+                        DisplayOrder = model.DisplayOrder,
+                        CourseSectionId = model.CourseSectionId
+                    };
+                    _unitOfWork.CourseVideo.Add(courseVideo);
+                    _unitOfWork.Save();
+
+                    return Json(new { success = true, message = "Course lecture added successfully!", id = courseVideo.Id });
+                }
+                // Update lecture title
+                else
+                {
+                    var courseVideo = _unitOfWork.CourseVideo.Get(c => c.Id == model.Id);
+                    if (courseVideo == null)
+                    {
+                        return Json(new { success = false, message = "Cannot find this lecture." });
+                    }
+
+                    courseVideo.Title = model.Title;
+
+                    _unitOfWork.CourseVideo.Update(courseVideo);
+                    _unitOfWork.Save();
+
+                    return Json(new { success = true, message = "Course lecture saved successfully!", id = courseVideo.Id });
+                }
+            }
+            catch(Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while saving the lecture title. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult UpdateLectureOrder([FromBody] List<LectureOrderViewModel> items)
+        {
+            if (items == null || !items.Any())
+            {
+                return Json(new { success = false, message = "No items to update." });
+            }
+
+            try
+            {
+                var videosToUpdate = _unitOfWork.CourseVideo.GetAll(v => items.Select(i => i.Id).Contains(v.Id)).ToList();
+
+                if (videosToUpdate.Count != items.Count)
+                {
+                    return Json(new { success = false, message = "Some lectures could not be found. Please refresh the page." });
+                }
+
+                foreach (var item in items)
+                {
+                    var video = videosToUpdate.FirstOrDefault(v => v.Id == item.Id);
+                    if (video != null)
+                    {
+                        video.DisplayOrder = item.DisplayOrder;
+                        _unitOfWork.CourseVideo.Update(video);
+                    }
+                }
+
+                _unitOfWork.Save();
+                return Json(new { success = true, message = "Lecture order updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return Json(new { success = false, message = "An error occurred while updating the lecture order." });
+            }
+        }
+
+
+        [HttpPost]
+        public IActionResult DeleteLecture (string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = "Lecture not found." });
+                }
+
+                var courseVideo = _unitOfWork.CourseVideo.Get(c => c.Id == id);
+                if (courseVideo == null)
+                {
+                    return Json(new { success = false, message = "Lecture not found." });
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(courseVideo.VideoUrl))
+                    {
+                        FileHelper.DeleteFile(courseVideo.VideoUrl, _webHostEnvironment);
+                    }
+
+                    var nextCourseVideos = _unitOfWork.CourseVideo.GetAll(c => c.DisplayOrder > courseVideo.DisplayOrder);
+                    foreach (var video in nextCourseVideos)
+                    {
+                        video.DisplayOrder -= 1;
+                        _unitOfWork.CourseVideo.Update(video);
+                    }
+
+                    _unitOfWork.CourseVideo.Remove(courseVideo);
+                    _unitOfWork.Save();
+                    return Json(new { success = true, message = "Lecture deleted successfully!" });
+
+                }
+            } 
+            catch (Exception e)
+            {
+                return Json(new { success = false, message = "An error occurred while deleting the lecture. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        [Route("Instructor/Course/UpdateCourseVideoAsync")]
+        [RequestFormLimits(MultipartBodyLengthLimit = 524288000)]
+        [RequestSizeLimit(524288000)]
+        public async Task<IActionResult> UpdateCourseVideoAsync([FromForm] CourseVideoViewModel model)
+        {
+            try
+            {
+                if (model.VideoFile == null || model.VideoFile.Length == 0)
+                {
+                    return Json(new { success = false, message = "No video file uploaded." });
+                }
+
+                var courseVideo = _unitOfWork.CourseVideo.Get(v => v.Id == model.Id, includeProperties: "CourseSection,CourseSection.Course");
+                if (courseVideo == null)
+                {
+                    return Json(new { success = false, message = "Video not found." });
+                }
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (courseVideo.CourseSection.Course.InstructorId != userId)
+                {
+                    return Json(new { success = false, message = "Unauthorized access." });
+                }
+
+                var videoUrl = await FileHelper.SaveFileAsync(model.VideoFile, $"video/course/{userId}", _webHostEnvironment);
+
+                if (!string.IsNullOrEmpty(courseVideo.VideoUrl))
+                {
+                    FileHelper.DeleteFile(courseVideo.VideoUrl, _webHostEnvironment);
+                }
+
+                
+                if (string.IsNullOrEmpty(videoUrl))
+                {
+                    return Json(new { success = false, message = "Failed to save video." });
+                }
+
+                var duration = await VideoHelper.GetVideoDurationAsync(videoUrl, _webHostEnvironment);
+
+                courseVideo.VideoUrl = videoUrl;
+                courseVideo.VideoSizeInBytes = model.VideoFile.Length;
+                courseVideo.Duration = duration;
+                courseVideo.UploadedAt = DateTime.UtcNow;
+
+                _unitOfWork.CourseVideo.Update(courseVideo);
+                _unitOfWork.Save();
+
+                return Json(new { success = true, message = "Video uploaded successfully.", title = courseVideo.Title, duration = duration });
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, message = "An error occurred during video upload." });
+            }
+        }
+
+        [HttpPost]
+        [Route("Instructor/Course/AddCourseResourceAsync")]
+        [RequestFormLimits(MultipartBodyLengthLimit = 524288000)]
+        [RequestSizeLimit(524288000)]
+        public async Task<IActionResult> AddCourseResourceAsync([FromForm] CourseResourceViewModel model)
+        {
+            try
+            {
+                if (model.ResourceFiles == null || !model.ResourceFiles.Any())
+                {
+                    return Json(new { success = false, message = "No files uploaded." });
+                }
+
+                var courseVideo = _unitOfWork.CourseVideo.Get(v => v.Id == model.CourseVideoId, includeProperties: "CourseSection,CourseSection.Course");
+                if (courseVideo == null)
+                {
+                    return Json(new { success = false, message = "Video not found." });
+                }
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (courseVideo.CourseSection.Course.InstructorId != userId)
+                {
+                    return Json(new { success = false, message = "Unauthorized access." });
+                }
+
+                var uploadedFiles = new List<object>();
+                var failedFiles = new List<string>();
+
+                foreach (var file in model.ResourceFiles.Where(f => f != null && f.Length > 0))
+                {
+                    var resourceUrl = await FileHelper.SaveFileAsync(file, $"video/course/{userId}", _webHostEnvironment);
+                    if (!string.IsNullOrEmpty(resourceUrl))
+                    {
+                        var courseResource = new CourseResource
+                        {
+                            Id = Guid.NewGuid().ToString(),
+                            ResourceUrl = resourceUrl,
+                            ResourceName = file.FileName,
+                            ResourceSizeInBytes = file.Length,
+                            CourseVideoId = model.CourseVideoId
+                        };
+                        _unitOfWork.CourseResource.Add(courseResource);
+                        uploadedFiles.Add(new
+                        {
+                            name = file.FileName,
+                            size = file.Length,
+                            id = courseResource.Id
+                        });
+                    }
+                    else
+                    {
+                        failedFiles.Add(file.FileName);
+                    }
+                }
+
+                _unitOfWork.Save();
+
+                var successMessage = uploadedFiles.Count > 0
+                    ? $"{uploadedFiles.Count} file(s) uploaded successfully."
+                    : "No files were uploaded.";
+
+                if (failedFiles.Count > 0)
+                {
+                    successMessage += $" {failedFiles.Count} file(s) failed to upload.";
+                }
+
+                return Json(new
+                {
+                    success = uploadedFiles.Count > 0,
+                    message = successMessage,
+                    uploadedCount = uploadedFiles.Count,
+                    failedCount = failedFiles.Count,
+                    uploadedFiles = uploadedFiles,
+                });
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, message = "An error occurred during file upload." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteResource(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = $"Cannot find the resource that have id '{id}'." });
+                }
+
+                var courseResoucre = _unitOfWork.CourseResource.Get(c => c.Id == id);
+
+                if (courseResoucre == null)
+                {
+                    return Json(new { success = false, message = $"Cannot find the resource that have id '{id}'." });
+                } 
+                else
+                {
+                    if (!string.IsNullOrEmpty(courseResoucre.ResourceUrl))
+                    {
+                        FileHelper.DeleteFile(courseResoucre.ResourceUrl, _webHostEnvironment);
+                    }
+
+                    _unitOfWork.CourseResource.Remove(courseResoucre);
+                    _unitOfWork.Save();
+                    return Json(new { success = true, message = "Resource deleted successfully!" });
+                }
+
+            } 
+            catch (Exception e)
+            {
+                return Json(new { success = false, message = "An error occurred while deleting the resource. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult TogglePreviewButton(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = $"Cannot find the lecture that have id '{id}'." });
+                }
+
+                var courseLecture = _unitOfWork.CourseVideo.Get(c => c.Id == id);
+
+                if (courseLecture == null)
+                {
+                    return Json(new { success = false, message = $"Cannot find the lecture that have id '{id}'." });
+                }
+                else
+                {
+                    courseLecture.IsPreview = !courseLecture.IsPreview;
+
+                    _unitOfWork.CourseVideo.Update(courseLecture);
+                    _unitOfWork.Save();
+
+                    var message = courseLecture.IsPreview
+                        ? "This lecture is now available for preview."
+                        : "This lecture is no longer available for preview.";
+
+                    return Json(new { success = true, message = message });
+                }
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, message = "An error occurred while toggling the preview. Please try again." });
             }
         }
 
@@ -301,7 +635,7 @@ namespace UdemyClone.Areas.Instructor.Controllers
         {
             // Get the course with related data for all partial views
             var course = _unitOfWork.Course.Get(c => c.Id == courseId,
-                includeProperties: "CourseLevel,Category,Subcategory,CourseOutcomes,CourseRequirements");
+                includeProperties: "CourseLevel,Category,Subcategory,CourseOutcomes,CourseRequirements,CourseSections,CourseSections.CourseVideos,CourseSections.CourseVideos.CourseResources");
 
             var landingPageVM = new LandingPageViewModel
             {

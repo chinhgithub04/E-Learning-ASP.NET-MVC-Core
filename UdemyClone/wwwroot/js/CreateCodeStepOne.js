@@ -32,6 +32,12 @@ function initializeStepOne() {
 
     // Auto-resize textarea and update counter
     titleInput.addEventListener('input', updateCharCount);
+    titleInput.addEventListener('keydown', function (e) {
+        if (e.key == 'Enter') {
+            e.preventDefault();
+            continueBtn.click();
+        }
+    });
 
     // Initialize on page load
     updateCharCount();

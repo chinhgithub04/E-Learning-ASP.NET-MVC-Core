@@ -367,3 +367,7 @@ UdemyClone/wwwroot/img/
 UdemyClone/wwwroot/img/**
 UdemyClone/wwwroot/video/
 UdemyClone/wwwroot/video/**
+
+# Ignore FFmpeg binaries (too large for GitHub)
+UdemyClone/FFmpeg/
+UdemyClone/FFmpeg/**

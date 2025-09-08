@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UdemyClone.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using UdemyClone.DataAccess.Data;
 namespace UdemyClone.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250823110921_AddCourseResourceTable")]
+    partial class AddCourseResourceTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -390,6 +393,9 @@ namespace UdemyClone.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CourseVideoId");
@@ -442,12 +448,18 @@ namespace UdemyClone.DataAccess.Migrations
                     b.Property<bool>("IsPreview")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("VideoName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<long?>("VideoSizeInBytes")
                         .HasColumnType("bigint");
@@ -606,7 +618,7 @@ namespace UdemyClone.DataAccess.Migrations
             modelBuilder.Entity("UdemyClone.Models.CourseResource", b =>
                 {
                     b.HasOne("UdemyClone.Models.CourseVideo", "CourseVideo")
-                        .WithMany("CourseResources")
+                        .WithMany("CourseResource")
                         .HasForeignKey("CourseVideoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -684,7 +696,7 @@ namespace UdemyClone.DataAccess.Migrations
 
             modelBuilder.Entity("UdemyClone.Models.CourseVideo", b =>
                 {
-                    b.Navigation("CourseResources");
+                    b.Navigation("CourseResource");
                 });
 
             modelBuilder.Entity("UdemyClone.Models.Instructor", b =>

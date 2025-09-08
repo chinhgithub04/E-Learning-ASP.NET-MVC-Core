@@ -6,6 +6,7 @@ using UdemyClone.DataAccess.Repositories;
 using UdemyClone.DataAccess.Interfaces;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using UdemyClone.Services.Email;
+using FFMpegCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,9 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 var app = builder.Build();
+
+// FFmepg
+GlobalFFOptions.Configure(new FFOptions { BinaryFolder = Path.Combine(Directory.GetCurrentDirectory(), "FFmpeg"), UseCache = false });
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

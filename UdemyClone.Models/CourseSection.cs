@@ -16,7 +16,7 @@ namespace UdemyClone.Models
         [StringLength(100, MinimumLength = 3)]
         public string Title { get; set; }
         public int DisplayOrder { get; set; }
-        public TimeSpan? Duration { get; set; } // Auto-calculated from videos
+        public TimeSpan? Duration { get; set; }
         public string CourseId { get; set; }
         [ValidateNever]
         [ForeignKey("CourseId")]

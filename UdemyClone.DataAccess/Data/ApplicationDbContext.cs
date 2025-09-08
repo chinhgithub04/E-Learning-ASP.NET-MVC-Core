@@ -19,5 +19,6 @@ namespace UdemyClone.DataAccess.Data
         public DbSet<CourseRequirement> CourseRequirements { get; set; }
         public DbSet<CourseSection> CourseSections { get; set; }
         public DbSet<CourseVideo> CourseVideos { get; set; }
+        public DbSet<CourseResource> CourseResources { get; set; }
     }
 }

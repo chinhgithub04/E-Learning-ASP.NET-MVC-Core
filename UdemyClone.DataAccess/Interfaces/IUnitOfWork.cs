@@ -15,6 +15,9 @@ namespace UdemyClone.DataAccess.Interfaces
         ICourseRepository Course { get; }
         ICourseOutcomeRepository CourseOutcome { get; }
         ICourseRequirementRepository CourseRequirement { get; }
+        ICourseSectionRepository CourseSection { get; }
+        ICourseVideoRepository CourseVideo { get; }
+        ICourseResourceRepository CourseResource { get; }
         void Save();
     }
 }

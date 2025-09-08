@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UdemyClone.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using UdemyClone.DataAccess.Data;
 namespace UdemyClone.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250830195826_RemoveStatusFromCourseResource")]
+    partial class RemoveStatusFromCourseResource
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -439,7 +442,7 @@ namespace UdemyClone.DataAccess.Migrations
                     b.Property<TimeSpan?>("Duration")
                         .HasColumnType("time");
 
-                    b.Property<bool>("IsPreview")
+                    b.Property<bool?>("IsPreview")
                         .HasColumnType("bit");
 
                     b.Property<string>("Title")

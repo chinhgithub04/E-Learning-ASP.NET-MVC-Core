@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UdemyClone.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using UdemyClone.DataAccess.Data;
 namespace UdemyClone.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250821115742_addNullToTableCourseVideo")]
+    partial class addNullToTableCourseVideo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -370,33 +373,6 @@ namespace UdemyClone.DataAccess.Migrations
                     b.ToTable("CourseRequirements");
                 });
 
-            modelBuilder.Entity("UdemyClone.Models.CourseResource", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("CourseVideoId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("ResourceName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("ResourceSizeInBytes")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("ResourceUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CourseVideoId");
-
-                    b.ToTable("CourseResources");
-                });
-
             modelBuilder.Entity("UdemyClone.Models.CourseSection", b =>
                 {
                     b.Property<string>("Id")
@@ -439,8 +415,17 @@ namespace UdemyClone.DataAccess.Migrations
                     b.Property<TimeSpan?>("Duration")
                         .HasColumnType("time");
 
+                    b.Property<long?>("FileSizeInBytes")
+                        .HasColumnType("bigint");
+
                     b.Property<bool>("IsPreview")
                         .HasColumnType("bit");
+
+                    b.Property<string>("ResourceUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -448,9 +433,6 @@ namespace UdemyClone.DataAccess.Migrations
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<long?>("VideoSizeInBytes")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("VideoUrl")
                         .HasColumnType("nvarchar(max)");
@@ -603,17 +585,6 @@ namespace UdemyClone.DataAccess.Migrations
                     b.Navigation("Course");
                 });
 
-            modelBuilder.Entity("UdemyClone.Models.CourseResource", b =>
-                {
-                    b.HasOne("UdemyClone.Models.CourseVideo", "CourseVideo")
-                        .WithMany("CourseResources")
-                        .HasForeignKey("CourseVideoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CourseVideo");
-                });
-
             modelBuilder.Entity("UdemyClone.Models.CourseSection", b =>
                 {
                     b.HasOne("UdemyClone.Models.Course", "Course")
@@ -680,11 +651,6 @@ namespace UdemyClone.DataAccess.Migrations
             modelBuilder.Entity("UdemyClone.Models.CourseSection", b =>
                 {
                     b.Navigation("CourseVideos");
-                });
-
-            modelBuilder.Entity("UdemyClone.Models.CourseVideo", b =>
-                {
-                    b.Navigation("CourseResources");
                 });
 
             modelBuilder.Entity("UdemyClone.Models.Instructor", b =>

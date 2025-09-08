@@ -14,10 +14,8 @@ namespace UdemyClone.Models
         public string Id { get; set; }
         [Required]
         public string? Title { get; set; }
-        public string VideoUrl { get; set; }
-        public string Status { get; set; }
-        public string? ResourceUrl { get; set; }
-        public long? FileSizeInBytes { get; set; }
+        public string? VideoUrl { get; set; }
+        public long? VideoSizeInBytes { get; set; }
         public bool IsPreview { get; set; } = false;
         public int DisplayOrder { get; set; }
         public TimeSpan? Duration { get; set; }
@@ -26,5 +24,7 @@ namespace UdemyClone.Models
         [ValidateNever]
         [ForeignKey("CourseSectionId")]
         public CourseSection CourseSection { get; set; }
+        [ValidateNever]
+        public ICollection<CourseResource> CourseResources { get; set; }
     }
 }

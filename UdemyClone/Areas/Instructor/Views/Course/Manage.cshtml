@@ -109,6 +109,8 @@
     <script src="~/js/UpLoadImageAndVideo.js"></script>
     <script src="~/js/SaveCourseOutcomeAndRequirement.js"></script>
     <script src="~/js/SaveLandingPage.js"></script>
+    <script src="~/js/SaveSectionTitle.js"></script>
+    <script src="~/js/LectureFunction.js"></script>
     <script>
         let currentSection = '@currentSection';
         const courseId = '@Model.Id';
@@ -337,6 +339,10 @@
 
                     if(typeof window.addInputListener === 'function'){
                         window.addInputListener();
+                    }
+
+                    if(typeof window.initializeCurriculum === 'function'){
+                        window.initializeCurriculum();
                     }
 
                     // Add event listeners for landing page form changes

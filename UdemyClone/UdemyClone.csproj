@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FFMpegCore" Version="5.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
@@ -22,6 +23,20 @@
     <ProjectReference Include="..\UdemyClone.DataAccess\UdemyClone.DataAccess.csproj" />
     <ProjectReference Include="..\UdemyClone.Models\UdemyClone.Models.csproj" />
     <ProjectReference Include="..\UdemyClone.Services\UdemyClone.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="FFmpeg\ffmpeg.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FFmpeg\ffprobe.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\img\course\" />
+    <Folder Include="wwwroot\video\course\" />
   </ItemGroup>
 
 </Project>

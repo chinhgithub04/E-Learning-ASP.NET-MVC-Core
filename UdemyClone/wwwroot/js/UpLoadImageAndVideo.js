@@ -46,6 +46,9 @@
             const file = files[0];
             if (file.type.startsWith('image/')) {
                 handleImageUpload(file);
+                if (typeof window.checkForChanges === 'function') {
+                    window.checkForChanges();
+                }
             }
         }
     });
@@ -160,6 +163,9 @@ function initializeVideoUpload() {
             const file = files[0];
             if (file.type.startsWith('video/')) {
                 handleVideoUpload(file);
+                if (typeof window.checkForChanges === 'function') {
+                    window.checkForChanges();
+                }
             }
         }
 
