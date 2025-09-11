@@ -1,13 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Elfie.Serialization;
+using FFMpegCore;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using UdemyClone.Common.Constants;
+using UdemyClone.Common.Helpers;
 using UdemyClone.DataAccess.Interfaces;
 using UdemyClone.Models;
 using UdemyClone.ViewModel;
-using FFMpegCore;
-using UdemyClone.Common.Helpers;
 
 namespace UdemyClone.Areas.Instructor.Controllers
 {
@@ -250,16 +251,35 @@ namespace UdemyClone.Areas.Instructor.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveSectionTitle(CourseSection courseSection)
+        public IActionResult SaveSectionTitle(CourseSectionViewModel model)
         {
             try
             {
-                if (string.IsNullOrEmpty(courseSection.Id))
+                // Add new section
+                if (string.IsNullOrEmpty(model.Id))
                 {
-                    return Json(new { success = false, message = "Cannot find this section, please reload the page and try again!" });
+                    CourseSection courseSection = new CourseSection
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Title = model.Title,
+                        DisplayOrder = model.DisplayOrder,
+                        CourseId = model.CourseId
+                    };
+
+                    _unitOfWork.CourseSection.Add(courseSection);
+                    _unitOfWork.Save();
+                    return Json(new { success = true, message = "Course section added successfully!", id = courseSection.Id });
                 }
                 else
                 {
+                    var courseSection = _unitOfWork.CourseSection.Get(c => c.Id == model.Id);
+                    if (courseSection == null)
+                    {
+                        return Json(new { success = false, message = "Cannot find this section." });
+                    }
+
+                    courseSection.Title = model.Title;
+
                     _unitOfWork.CourseSection.Update(courseSection);
                     _unitOfWork.Save();
 
@@ -272,6 +292,57 @@ namespace UdemyClone.Areas.Instructor.Controllers
             }
         }
 
+        [HttpPost]
+        public IActionResult DeleteSection(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = "Id not found"});
+                }
+
+                var courseSection = _unitOfWork.CourseSection.Get(c => c.Id == id, includeProperties: "CourseVideos,CourseVideos.CourseResources");
+                if (courseSection == null)
+                {
+                    return Json(new { success = false, message = "Cannot find this section" });
+                }
+
+                foreach (var video in courseSection.CourseVideos)
+                {
+
+                    if (!string.IsNullOrEmpty(video.VideoUrl))
+                    {
+                        FileHelper.DeleteFile(video.VideoUrl, _webHostEnvironment);
+                    }
+
+                    foreach (var resource in video.CourseResources)
+                    {
+                        if (!string.IsNullOrEmpty(resource.ResourceUrl))
+                        {
+                            FileHelper.DeleteFile(resource.ResourceUrl, _webHostEnvironment);
+                        }
+                    }
+                }
+
+                var nextSections = _unitOfWork.CourseSection.GetAll(s => s.DisplayOrder > courseSection.DisplayOrder);
+                foreach (var section in nextSections)
+                {
+                    section.DisplayOrder -= 1;
+                    _unitOfWork.CourseSection.Update(section);
+                }
+
+                _unitOfWork.CourseSection.Remove(courseSection);
+                _unitOfWork.Save();
+                return Json(new { success = true, message = "Deleted successfully!" });
+
+            }
+            catch (Exception e)
+            {
+                return Json(new { success = false, message = e.Message });
+
+            }
+        }
         [HttpPost]
         public IActionResult SaveLectureTitle(CourseLectureTitleViewModel model)
         {
@@ -347,12 +418,45 @@ namespace UdemyClone.Areas.Instructor.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception
                 return Json(new { success = false, message = "An error occurred while updating the lecture order." });
             }
         }
 
+        [HttpPost]
+        public IActionResult UpdateSectionOrder([FromBody] List<LectureOrderViewModel> items)
+        {
+            if (items == null || !items.Any())
+            {
+                return Json(new { success = false, message = "No items to update." });
+            }
 
+            try
+            {
+                var sectionsToUpdate = _unitOfWork.CourseSection.GetAll(s => items.Select(i => i.Id).Contains(s.Id)).ToList();
+
+                if (sectionsToUpdate.Count != items.Count)
+                {
+                    return Json(new { success = false, message = "Some sections could not be found. Please refresh the page." });
+                }
+
+                foreach (var item in items)
+                {
+                    var section = sectionsToUpdate.FirstOrDefault(s => s.Id == item.Id);
+                    if (section != null)
+                    {
+                        section.DisplayOrder = item.DisplayOrder;
+                        _unitOfWork.CourseSection.Update(section);
+                    }
+                }
+
+                _unitOfWork.Save();
+                return Json(new { success = true, message = "Section order updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while updating the section order." });
+            }
+        }
         [HttpPost]
         public IActionResult DeleteLecture (string id)
         {
@@ -363,7 +467,7 @@ namespace UdemyClone.Areas.Instructor.Controllers
                     return Json(new { success = false, message = "Lecture not found." });
                 }
 
-                var courseVideo = _unitOfWork.CourseVideo.Get(c => c.Id == id);
+                var courseVideo = _unitOfWork.CourseVideo.Get(c => c.Id == id, includeProperties: "CourseResources");
                 if (courseVideo == null)
                 {
                     return Json(new { success = false, message = "Lecture not found." });
@@ -373,6 +477,14 @@ namespace UdemyClone.Areas.Instructor.Controllers
                     if (!string.IsNullOrEmpty(courseVideo.VideoUrl))
                     {
                         FileHelper.DeleteFile(courseVideo.VideoUrl, _webHostEnvironment);
+                    }
+
+                    foreach (var resource in courseVideo.CourseResources)
+                    {
+                        if (!string.IsNullOrEmpty(resource.ResourceUrl))
+                        {
+                            FileHelper.DeleteFile(resource.ResourceUrl, _webHostEnvironment);
+                        }
                     }
 
                     var nextCourseVideos = _unitOfWork.CourseVideo.GetAll(c => c.DisplayOrder > courseVideo.DisplayOrder);

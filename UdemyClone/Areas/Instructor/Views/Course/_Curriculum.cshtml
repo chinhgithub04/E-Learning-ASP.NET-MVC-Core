@@ -11,6 +11,7 @@
     </div>
 
     <div id="curriculum-form" class="space-y-6">
+        <input type="hidden" id="CourseId" asp-for="@(Model.Id)" />
         <div class="input-list space-y-3">
             @if (courseSections.Any())
             {
@@ -28,7 +29,11 @@
                                     <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
                                     </svg>
-                                    <span class="font-medium text-gray-900">Section @(section.DisplayOrder): @(section.Title)</span>
+                                    <div class="font-medium text-gray-900">
+                                        Section
+                                        <span class="section-display-order">@(section.DisplayOrder):</span>
+                                        <span class="section-title"> @(section.Title)</span>
+                                    </div>
                                     <button type="button" class="edit-section-title cursor-pointer rounded p-2 hover:bg-gray-200" title="Edit section">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil h-4 w-4"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg>
                                     </button>
@@ -37,12 +42,16 @@
 
                             <form class="title-form m-2 flex hidden items-center justify-between border bg-white px-6 py-4">
                                 <input type="hidden" asp-for="@(section.Id)" name="SectionId" />
+                                <input type="hidden" asp-for="@(section.DisplayOrder)" name="DisplayOrder" />
                                 <div class="flex w-full items-center space-x-3">
                                     <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
                                     </svg>
                                     <div class="flex w-full items-center space-x-4">
-                                        <div class="font-medium text-gray-900">Section @(section.DisplayOrder): </div>
+                                        <div class="font-medium text-gray-900">
+                                            Section
+                                            <span class="section-display-order">@(section.DisplayOrder):</span>
+                                        </div>                                        
                                         <input type="text" class="title-input w-96 flex-1 rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500" placeholder="Enter section title" asp-for="@(section.Title)" name="SectionTitle" />
                                         <button type="button" class="save-section-title cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 focus:ring-2 focus:outline-none">
                                             Save
@@ -54,7 +63,7 @@
                                 </div>
                             </form>
 
-                            <div class="space-y-3 px-6 py-4">
+                            <div class="lecture-list-and-add-lecture-btn space-y-3 px-6 py-4">
                                 <div class="lecture-input-list space-y-3">
                                     @if (sectionVideos.Any())
                                     {
@@ -385,36 +394,9 @@
                     </div>
                 }
             }
-            else
-            {
-                <div class="input-row flex items-center space-x-3">
-                    <button type="button" class="drag-handle cursor-grab text-gray-400 hover:text-gray-600" title="Drag to reorder">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h5 lucide lucide-align-justify-icon lucide-align-justify w-5"><path d="M3 12h18" /><path d="M3 18h18" /><path d="M3 6h18" /></svg>
-                    </button>
-                    <div class="w-full rounded-lg border border-gray-300">
-                        <div class="title-div flex items-center justify-between bg-gray-50 px-6 py-4">
-                            <div class="flex items-center space-x-3">
-                                <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
-                                </svg>
-                                <span class="font-medium text-gray-900">No sections available</span>
-                            </div>
-                        </div>
-
-                        <div class="space-y-3 px-6 py-4">
-                            <div class="flex items-center space-x-3 text-sm text-gray-600">
-                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path>
-                                </svg>
-                                <span>Create your first section to get started</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
         </div>
 
-        <button class="w-full rounded-lg border-2 border-dashed border-gray-300 py-8 transition-colors hover:border-orange-500 hover:bg-orange-50">
+        <button class="add-section-btn w-full cursor-pointer rounded-lg border-2 border-dashed border-gray-300 py-8 transition-colors hover:border-orange-500 hover:bg-orange-50">
             <div class="text-center">
                 <svg class="mx-auto mb-2 h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>

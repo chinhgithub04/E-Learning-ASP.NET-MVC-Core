@@ -5,9 +5,12 @@ using UdemyClone.Models;
 
 namespace UdemyClone.ViewModel
 {
-    public class CourseVideoViewModel
+    public class CourseSectionViewModel
     {
         public string Id { get; set; }
-        public IFormFile VideoFile { get; set; }
+        public string Title { get; set; }
+        public int DisplayOrder { get; set; }
+        public string CourseId { get; set; }
+
     }
 }

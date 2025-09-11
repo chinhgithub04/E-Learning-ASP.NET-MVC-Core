@@ -38,10 +38,16 @@
         if (target.closest('.cancel-section-title')) {
             const button = target.closest('.cancel-section-title');
             const titleForm = button.closest('.title-form');
+            const sectionId = titleForm.querySelector('input[name="SectionId"').value;
             const titleDiv = titleForm.previousElementSibling;
 
-            titleForm.classList.add('hidden');
-            titleDiv.classList.remove('hidden');
+            if (sectionId) {
+                titleForm.classList.add('hidden');
+                titleDiv.classList.remove('hidden');
+            } else {
+                const inputRow = titleDiv.closest('.input-row');
+                inputRow?.remove();
+            }
         }
 
         // Save Section Title
@@ -49,9 +55,12 @@
             const button = target.closest('.save-section-title');
             const titleForm = button.closest('.title-form');
             const titleDiv = titleForm.previousElementSibling;
-            const sectionId = titleForm.querySelector('input[name="SectionId"]').value;
+            const sectionElement = titleForm.querySelector('input[name="SectionId"]');
+            const sectionId = sectionElement.value;
             const titleInput = titleForm.querySelector('input[name="SectionTitle"]');
             const newTitle = titleInput.value.trim();
+            const courseId = document.getElementById('CourseId').value;
+            const displayOrder = titleForm.querySelector('input[name="DisplayOrder"]').value;
 
             if (!newTitle) {
                 alert('Section title cannot be empty');
@@ -61,6 +70,8 @@
             const formData = new FormData();
             formData.append('Id', sectionId);
             formData.append('Title', newTitle);
+            formData.append('CourseId', courseId);
+            formData.append('DisplayOrder', displayOrder);
 
             fetch('/Instructor/Course/SaveSectionTitle', {
                 method: 'POST',
@@ -72,9 +83,29 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        const displayTitle = titleDiv.querySelector('span');
-                        const sectionOrder = displayTitle.textContent.split(':')[0].trim();
-                        displayTitle.textContent = `${sectionOrder}: ${newTitle}`;
+
+                        if (!sectionId) {
+                            sectionElement.value = data.id;
+                        }
+
+                        const sectionDisplayOrder = titleDiv.querySelector('.section-display-order');
+                        sectionDisplayOrder.textContent = `${displayOrder}:`;
+                        const sectionTitle = titleDiv.querySelector('.section-title');
+                        sectionTitle.textContent = ` ${newTitle}`;
+
+                        const inputRow = titleDiv.closest('.input-row');
+                        const dragButton = inputRow.querySelector('.drag-handle');
+                        const removeButton = inputRow.querySelector('.remove-section');
+                        const lectureListAndAddLectureBtn = titleForm.nextElementSibling;
+
+                        if (dragButton && removeButton && dragButton.classList.contains('hidden') && removeButton.classList.contains('hidden')) {
+                            dragButton.classList.remove('hidden');
+                            removeButton.classList.remove('hidden');
+                        }
+
+                        if (lectureListAndAddLectureBtn && lectureListAndAddLectureBtn.classList.contains('hidden')) {
+                            lectureListAndAddLectureBtn.classList.remove('hidden');
+                        }
 
                         titleForm.classList.add('hidden');
                         titleDiv.classList.remove('hidden');
@@ -110,6 +141,11 @@
             if (lectureInformation && lectureUploadVideo) {
                 lectureInformation.classList.add('hidden');
                 lectureUploadVideo.classList.remove('hidden');
+
+                const closeUploadBtn = lectureUploadVideo.querySelector('.lecture-close-upload-video-btn');
+                if (closeUploadBtn && closeUploadBtn.classList.contains('hidden')) {
+                    closeUploadBtn.classList.remove('hidden');
+                }
             }
         }
 
@@ -209,6 +245,12 @@
                         const lectureVideoTitle = lectureDetail.querySelector('.lecture-video-title');
                         if (lectureVideoTitle) {
                             lectureVideoTitle.textContent = lectureTitle;
+                        }
+
+                        const resourceUploadForm = lectureInputRow.querySelector('.resource-upload-form');
+                        const courseVideo = resourceUploadForm.querySelector('input[name="CourseVideoId"]');
+                        if (courseVideo && !courseVideo.value) {
+                            courseVideo.value = data.id;
                         }
 
                         showNotification(true, data.message);
@@ -349,6 +391,137 @@
                 }
             });
         }
+
+        //Add new section
+        if (target.closest('.add-section-btn')) {
+            const sectionList = this.querySelector('.input-list');
+            const sectionRows = sectionList.querySelectorAll('.input-row');
+            const nextSectionDisplayOrder = sectionRows.length + 1;
+
+            if (!courseId) {
+                showNotification(false, 'Course ID not found. Please refresh the page.');
+                return;
+            }
+
+            const newSection = document.createElement('div');
+            newSection.classList.add('input-row', 'flex', 'items-center', 'space-x-6');
+            newSection.innerHTML = `
+                <button type="button" class="drag-handle hidden cursor-grab rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600" title="Drag to reorder">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h5 lucide lucide-align-justify-icon lucide-align-justify w-5"><path d="M3 12h18" /><path d="M3 18h18" /><path d="M3 6h18" /></svg>
+                </button>
+                <div class="section-container w-full rounded-lg border border-gray-300">
+                    <div class="title-div flex hidden items-center justify-between bg-gray-50 px-6 py-4">
+                        <div class="flex items-center space-x-3">
+                            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                            </svg>
+                            <div class="font-medium text-gray-900">
+                                Section
+                                <span class="section-display-order">${nextSectionDisplayOrder}:</span>
+                                <span class="section-title"> Introduction</span>
+                            </div>
+                            <button type="button" class="edit-section-title cursor-pointer rounded p-2 hover:bg-gray-200" title="Edit section">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil h-4 w-4"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <form class="title-form m-2 flex items-center justify-between border bg-white px-6 py-4">
+                        <input type="hidden" value="" name="SectionId" />
+                        <input type="hidden" value="${nextSectionDisplayOrder}" name="DisplayOrder" />
+                        <div class="flex w-full items-center space-x-3">
+                            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                            </svg>
+                            <div class="flex w-full items-center space-x-4">
+                                <div class="font-medium text-gray-900">
+                                    Section
+                                    <span class="section-display-order">${nextSectionDisplayOrder}</span>
+                                </div>
+                                <input type="text" class="title-input w-96 flex-1 rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500" placeholder="Enter section title" value="Introduction" name="SectionTitle" />
+                                <button type="button" class="save-section-title cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 focus:ring-2 focus:outline-none">
+                                    Save
+                                </button>
+                                <button type="button" class="cancel-section-title cursor-pointer rounded-lg bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-300 focus:outline-none">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="lecture-list-and-add-lecture-btn hidden space-y-3 px-6 py-4">
+                        <div class="lecture-input-list space-y-3">
+                        </div>
+                        <button class="add-lecture-btn cursor-pointer text-sm font-medium text-orange-600 hover:text-orange-700">+ Add lecture</button>
+                    </div>
+                </div>
+                <button type="button" class="remove-section hidden cursor-pointer rounded p-1 text-red-500 hover:bg-gray-200 hover:text-red-700" title="Delete this section">
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            `;
+
+            sectionList.appendChild(newSection);
+
+            const titleInput = newSection.querySelector('.title-input');
+            titleInput.focus();
+            titleInput.select();
+
+        }
+
+        // Delete a section
+        if (e.target.closest('.remove-section')) {
+            const button = e.target.closest('.remove-section');
+            const inputRow = button.closest('.input-row');
+            const sectionId = inputRow.querySelector('input[name="SectionId"]').value;
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('id', sectionId);
+
+                    fetch('/Instructor/Course/DeleteSection', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const inputList = inputRow.parentElement;
+                                inputRow.remove();
+                                const inputRows = inputList.querySelectorAll('.input-row');
+
+                                inputRows.forEach((row, index) => {
+                                    const newOrder = index + 1;
+
+                                    const sectionDisplayOrder = row.querySelector('.section-display-order');
+                                    sectionDisplayOrder.textContent = `${newOrder}:`;
+
+                                    const sectionOrderInput = row.querySelector('input[name="DisplayOrder"]');
+                                    sectionOrderInput.value = newOrder;
+                                });
+
+                                showNotification(true, data.message);
+                            }
+                            else {
+                                showNotification(false, data.message);
+                            }
+                        })
+                        .catch(error => {
+                            showNotification(false, error.message);
+                        });
+                }
+            });
+        }
     });
 
     curriculumForm.addEventListener('change', function (e) {
@@ -385,7 +558,6 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error toggling preview:', error);
                     target.checked = !target.checked;
                     showNotification(false, 'An unexpected error occurred.');
                 });
@@ -498,6 +670,7 @@
     setupFileInputs(curriculumForm);
 
     function initializeSortable() {
+        // Lecture
         const lectureLists = curriculumForm.querySelectorAll('.lecture-input-list');
         lectureLists.forEach(list => {
             new Sortable(list, {
@@ -543,12 +716,61 @@
                                 }
                             })
                             .catch(error => {
-                                console.error('Error updating lecture order:', error);
                                 showNotification(false, 'An unexpected error occurred.');
                             });
                     }
                 }
             });
+        });
+
+        // Section
+        const sectionList = curriculumForm.querySelector('.input-list');
+        new Sortable(sectionList, {
+            animation: 150,
+            handle: '.drag-handle',
+            ghostClass: 'opacity-60',
+            onEnd: function (evt) {
+                const items = Array.from(evt.to.children).map((row, index) => {
+                    const id = row.querySelector('input[name="SectionId"]').value;
+                    const newOrder = index + 1;
+
+                    const sectionDisplayOrder = row.querySelectorAll('.section-display-order');
+                    if (sectionDisplayOrder && sectionDisplayOrder.length > 0) {
+                        sectionDisplayOrder.forEach(element => {
+                            element.textContent = `${newOrder}: `;
+                        })
+                    }
+
+                    const displayOrderInput = row.querySelector('input[name="DisplayOrder"]');
+                    if (displayOrderInput) {
+                        displayOrderInput.value = newOrder;
+                    }
+
+                    return { id, displayOrder: newOrder };
+                });
+
+                const itemsToUpdate = items.filter(item => item.id);
+
+                if (itemsToUpdate.length > 0) {
+                    fetch('/Instructor/Course/UpdateSectionOrder', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                        },
+                        body: JSON.stringify(itemsToUpdate)
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.success) {
+                                showNotification(false, data.message || 'Failed to update section order. Please reload the page and try again.');
+                            }
+                        })
+                        .catch(error => {
+                            showNotification(false, error.message);
+                        });
+                }
+            }
         });
     }
 
@@ -673,8 +895,15 @@
 
                                     if (lectureDuration) {
                                         lectureDuration.textContent = formattedDuration;
+                                        lectureDuration.classList.remove('hidden');
                                     }
                                 }
+                            }
+
+                            const videoPreViewForm = lectureInformation.querySelector('.video-preview-form');
+                            const videoPreviewIdInput = videoPreViewForm.querySelector('input[name="VideoId"]');
+                            if (videoPreviewIdInput) {
+                                videoPreviewIdInput.value = videoIdInput.value;
                             }
 
                             lectureUploadVideo.classList.add('hidden');
@@ -917,6 +1146,8 @@
                             <span class="lecture-display-order">${nextDisplayOrder}</span>
                             <span class="lecture-title"></span>
                         </div>
+                        <div class="lecture-duration rounded bg-green-100 px-2 py-1 text-xs text-green-80 hidden">
+                        </div>
                         <button type="button" class="lecture-title-edit lecture-group-ultility-button hidden cursor-pointer rounded p-1 hover:bg-gray-300" title="Edit title">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil h-4 w-4"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /><path d="m15 5 4 4" /></svg>
                         </button>
@@ -966,11 +1197,168 @@
                         <div class="flex"><svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg><div class="ml-3"><p class="text-sm"><strong>Note:</strong> All files should be at least 720p and less than 4.0 GB.</p></div></div>
                     </form>
                 </div>
+                <div class="lecture-information mt-4 space-y-4 text-sm font-normal hidden">
+                    <!-- Video Information Section -->
+                    <div class="rounded-lg border border-gray-200 bg-white p-4">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start space-x-4">
+                                <!-- Video Thumbnail -->
+                                <div class="flex-shrink-0">
+                                    <div class="relative h-23 w-32 overflow-hidden rounded-lg bg-gray-100">
+                                        <div class="flex h-full items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-timer-icon lucide-timer h-8 w-8 text-gray-500"><line x1="10" x2="14" y1="2" y2="2" /><line x1="12" x2="15" y1="14" y2="11" /><circle cx="12" cy="14" r="8" /></svg>
+                                        </div>
+                                        <!-- Play button overlay -->
+                                        <div class="absolute inset-0 flex items-center justify-center">
+                                            <div class="bg-opacity-60 rounded-full bg-black p-2">
+                                                <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Video Details -->
+                                <div class="flex-1 space-y-2">
+                                    <h4 class="lecture-video-title font-medium text-gray-900">Introduction</h4>
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="lecture-video-duration text-gray-600">00:00</span>
+                                    </div>
+
+                                    <!-- Action Buttons -->
+                                    <div class="flex space-x-3 pt-2">
+                                        <button type="button" class="inline-flex cursor-pointer items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                                            <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                            Review
+                                        </button>
+                                        <button type="button" class="lecture-change-video-btn inline-flex cursor-pointer items-center rounded-md border border-orange-300 bg-orange-50 px-3 py-1.5 text-xs font-medium text-orange-700 hover:bg-orange-100 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                                            <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                            </svg>
+                                            Change Video
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Preview text and toggle switch here -->
+                            <form class="video-preview-form">
+                                <input type="hidden" name="VideoId" value="" />
+                                <label class="inline-flex cursor-pointer items-center">
+                                    <span class="mr-3 text-sm font-medium text-gray-900">Preview</span>
+                                    <div class="relative">
+                                        <input type="checkbox" class="peer toggle-preview sr-only" />
+                                        <div class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-orange-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none"></div>
+                                    </div>
+                                </label>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Downloadable Materials Section -->
+                    <div class="course-resource-holder rounded-lg border border-gray-200 bg-white p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <h5 class="font-medium text-gray-900">Downloadable Material</h5>
+                            </div>
+                            <button type="button" class="resource-upload-btn inline-flex cursor-pointer items-center rounded-md border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                + Resources
+                            </button>
+                            <form class="resource-upload-form hidden" enctype="multipart/form-data">
+                                <input type="hidden" name="CourseVideoId" value="" />
+                                <input class="resource-file-input" type="file" multiple hidden name="ResourceFiles" />
+                            </form>
+                        </div>
+                        <div class="course-resource-list">
+                        </div>
+                        <div class="resource-upload-progress mt-4 hidden space-y-4 text-sm font-normal">
+                            <div class="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                                <div class="mb-3 flex items-center justify-between">
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="h-5 w-5 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span class="font-medium text-blue-900">Uploading Resources...</span>
+                                    </div>
+                                    <span class="resource-upload-percentage text-sm font-medium text-blue-700">0%</span>
+                                </div>
+
+                                <!-- Progress Bar -->
+                                <div class="mb-3 h-2 w-full rounded-full bg-blue-200">
+                                    <div class="resource-upload-progress-bar h-2 rounded-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
+                                </div>
+
+                                <!-- Upload Details -->
+                                <div class="flex justify-between text-xs text-blue-700">
+                                    <span class="resource-upload-count">Preparing upload...</span>
+                                    <span class="resource-upload-speed">0 KB/s</span>
+                                </div>
+
+                                <!-- Cancel Button -->
+                                <div class="mt-3 flex justify-end">
+                                    <button type="button" class="cancel-resource-upload-btn inline-flex cursor-pointer items-center rounded-md border border-red-300 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none">
+                                        <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                        Cancel Upload
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lecture-upload-progress mt-4 hidden space-y-4 text-sm font-normal">
+                    <!-- Upload Progress Section -->
+                    <div class="rounded-lg border border-orange-200 bg-orange-50 p-4">
+                        <div class="mb-3 flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <svg class="h-5 w-5 animate-spin text-orange-500" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="font-medium text-orange-900">Uploading Video...</span>
+                            </div>
+                            <span class="upload-percentage text-sm font-medium text-orange-700">0%</span>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="mb-3 h-2 w-full rounded-full bg-orange-200">
+                            <div class="upload-progress-bar h-2 rounded-full bg-orange-500 transition-all duration-300" style="width: 0%"></div>
+                        </div>
+
+                        <!-- Upload Details -->
+                        <div class="flex justify-between text-xs text-orange-700">
+                            <span class="upload-filename">Preparing upload...</span>
+                            <span class="upload-speed">0 MB/s</span>
+                        </div>
+
+                        <!-- Cancel Button -->
+                        <div class="mt-3 flex justify-end">
+                            <button type="button" class="cancel-upload-btn inline-flex cursor-pointer items-center rounded-md border border-red-300 bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none">
+                                <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Cancel Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
 
         lectureInputList.appendChild(newRow);
         setupFileInputs(newRow);
+        initializeSortable();
 
         const titleInput = newRow.querySelector('.lecture-title-input');
         titleInput.focus();
