@@ -1,6 +1,4 @@
-﻿using Elfie.Serialization;
-using FFMpegCore;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
@@ -728,6 +726,41 @@ namespace UdemyClone.Areas.Instructor.Controllers
                 Value = s.Id
             });
             return Json(subcategories);
+        }
+
+        [HttpPost]
+        public IActionResult SavePricing([FromBody] CoursePriceViewModel model)
+        {
+            try
+            {
+                var course = _unitOfWork.Course.Get(c => c.Id == model.Id);
+                if (course == null)
+                {
+                    return Json(new { success = false, message = "Course not found." });
+                }
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (course.InstructorId != userId)
+                {
+                    return Json(new { success = false, message = "Unauthorized access." });
+                }
+
+                if (model.Price > 0 && model.Price < 1.99m)
+                {
+                    model.Price = 1.99m;
+                }
+
+                course.Price = model.Price;
+                course.UpdatedAt = DateTime.UtcNow;
+                _unitOfWork.Course.Update(course);
+                _unitOfWork.Save();
+
+                return Json(new { success = true, message = "Course pricing saved successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while saving the pricing. Please try again." });
+            }
         }
 
         [HttpGet]

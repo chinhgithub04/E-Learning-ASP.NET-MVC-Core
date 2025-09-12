@@ -109,7 +109,7 @@
     <script src="~/js/UpLoadImageAndVideo.js"></script>
     <script src="~/js/SaveCourseOutcomeAndRequirement.js"></script>
     <script src="~/js/SaveLandingPage.js"></script>
-    <script src="~/js/SaveSectionTitle.js"></script>
+    <script src="~/js/pricing-page-function.js"></script>
     <script src="~/js/LectureFunction.js"></script>
     <script>
         let currentSection = '@currentSection';
@@ -153,6 +153,17 @@
                         SubcategoryId: formData.get('SubcategoryId'),
                         ImageFile: formData.get('ImageFile'),
                         VideoFile: formData.get('VideoFile'),
+                    };
+                }
+            } else if (currentSection === 'pricing') {
+                const priceInput = document.querySelector('input[name="Price"]');
+                const freeRadio = document.querySelector('input[name="pricing"][value="free"]');
+                const paidRadio = document.querySelector('input[name="pricing"][value="paid"]');
+
+                if (priceInput && freeRadio && paidRadio) {
+                    originalFormData = {
+                        Price: parseFloat(priceInput.value) || 0,
+                        PricingType: freeRadio.checked ? 'free' : 'paid'
                     };
                 }
             }
@@ -209,6 +220,24 @@
                     hasUnsavedChanges = titleChanged || subtitleChanged || descriptionChanged ||
                                        levelChanged || categoryChanged || subcategoryChanged ||
                                        imageChanged || videoChanged;
+                    toggleSaveButton();
+                }
+            }
+
+            //pricing
+            else if (currentSection === 'pricing' && originalFormData) {
+                const priceInput = document.querySelector('input[name="Price"]');
+                const freeRadio = document.querySelector('input[name="pricing"][value="free"]');
+                const paidRadio = document.querySelector('input[name="pricing"][value="paid"]');
+
+                if (priceInput && freeRadio && paidRadio) {
+                    const currentPrice = parseFloat(priceInput.value) || 0;
+                    const currentPricingType = freeRadio.checked ? 'free' : 'paid';
+
+                    const priceChanged = originalFormData.Price !== currentPrice;
+                    const pricingTypeChanged = originalFormData.PricingType !== currentPricingType;
+
+                    hasUnsavedChanges = priceChanged || pricingTypeChanged;
                     toggleSaveButton();
                 }
             }
@@ -296,6 +325,8 @@
                     saveIntendedLearners();
                 } else if(currentSection === 'landing-page'){
                     saveLandingPage();
+                } else if(currentSection === 'pricing'){
+                    savePricing();
                 }
             });
 
@@ -345,9 +376,12 @@
                         window.initializeCurriculum();
                     }
 
-                    // Add event listeners for landing page form changes
                     if (section === 'landing-page') {
                         setupLandingPageChangeListeners();
+                    }
+
+                    if (section === 'pricing'){
+                        initializePricingPageFunction();
                     }
 
                     // Capture original form data after content loads
