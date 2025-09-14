@@ -21,9 +21,29 @@ namespace UdemyClone.Areas.Instructor.Controllers
             _unitOfWork = unitOfWork;
             _webHostEnvironment = webHostEnvironment;
         }
-        public IActionResult Index()
+        public IActionResult Index(string? search = "", string sort = "created-desc")
         {
-            return View();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var courses = _unitOfWork.Course.GetAll(c => c.InstructorId == userId);
+
+            courses = courses.Where(c => c.Title.Contains(search));
+
+            courses = sort switch
+            {
+                "created-asc" => courses.OrderBy(c => c.CreatedAt),
+                "created-desc" => courses.OrderByDescending(c => c.CreatedAt),
+                "title-asc" => courses.OrderBy(c => c.Title),
+                "title-desc" => courses.OrderByDescending(c => c.Title),
+                "updated-desc" => courses.OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt),
+                "updated-asc" => courses.OrderBy(c => c.UpdatedAt ?? c.CreatedAt),
+                "price-desc" => courses.OrderByDescending(c => c.Price ?? 0),
+                "price-asc" => courses.OrderBy(c => c.Price ?? 0),
+                "status-desc" => courses.OrderByDescending(c => c.Status),
+                _ => courses.OrderByDescending(c => c.CreatedAt)
+            };
+
+            ViewBag.CurrentSort = sort;
+            return View(courses);
         }
 
         public IActionResult Create(int step = 1)

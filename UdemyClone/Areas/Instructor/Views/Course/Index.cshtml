@@ -1,15 +1,151 @@
-﻿<div class="mb-4 flex items-center justify-between">
-    <form class="w-[400px]">
-        <label for="default-search" class="sr-only mb-2 text-sm font-medium text-gray-900">Search</label>
-        <div class="relative">
-            <div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
-                <svg class="h-4 w-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-                </svg>
+﻿@model IEnumerable<Course>
+
+<div class="mb-8 flex items-center justify-between">
+    <div class="w-[400px]">
+        <div>
+            <label for="default-search" class="sr-only mb-2 text-sm font-medium text-gray-900">Search</label>
+            <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
+                    <svg class="h-4 w-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                    </svg>
+                </div>
+                <input type="search" id="default-search" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-4 ps-10 text-sm text-gray-900 focus:outline-orange-500" placeholder="Search your courses" value="@(ViewBag.CurrentSearch)" />
+                <button type="button" id="search-course-btn" class="absolute end-2.5 bottom-2.5 cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600">Search</button>
             </div>
-            <input type="search" id="default-search" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-4 ps-10 text-sm text-gray-900 focus:outline-orange-500" placeholder="Search your courses" required />
-            <button type="submit" class="absolute end-2.5 bottom-2.5 cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600">Search</button>
         </div>
-    </form>
+    </div>
     <a asp-action="Create" asp-route-step="1" class="rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600">New course</a>
 </div>
+
+<!-- Sort -->
+<div class="mb-6 flex sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex items-center gap-3">
+        <span class="text-sm font-medium text-gray-700">Sort by:</span>
+        <div class="relative">
+            <select id="sortSelect" class="cursor-pointer appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2 pr-8 text-sm text-gray-900 shadow-sm transition-all duration-200 hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 focus:outline-none">
+                <option value="created-desc" selected="@(ViewBag.CurrentSort == "created-desc")">Newest First</option>
+                <option value="created-asc" selected="@(ViewBag.CurrentSort == "created-asc")">Oldest First</option>
+                <option value="title-asc" selected="@(ViewBag.CurrentSort == "title-asc")">Title (A-Z)</option>
+                <option value="title-desc" selected="@(ViewBag.CurrentSort == "title-desc")">Title (Z-A)</option>
+                <option value="updated-desc" selected="@(ViewBag.CurrentSort == "updated-desc")">Recently Updated</option>
+                <option value="price-desc" selected="@(ViewBag.CurrentSort == "price-desc")">Price (High to Low)</option>
+                <option value="price-asc" selected="@(ViewBag.CurrentSort == "price-asc")">Price (Low to High)</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@if (Model.Any())
+{
+    <div id="coursesContainer" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        @foreach (var course in Model.ToList())
+        {
+            <div class="course-card flex flex-col rounded-lg border border-gray-200 bg-white shadow-md transition-shadow duration-300 hover:shadow-lg">
+                <div class="relative">
+                    @if (!string.IsNullOrEmpty(course.ImageUrl))
+                    {
+                        <img class="course-image h-48 w-full rounded-t-lg object-cover" src="@course.ImageUrl" alt="@course.Title" />
+                    }
+                    else
+                    {
+                        <img class="course-image h-48 w-full rounded-t-lg object-cover" src="~/img//course-image-placeholder.webp" alt="@course.Title" />
+                    }
+
+                    @{
+                        string statusClass = course.Status switch
+                        {
+                            "Published" => "bg-green-100 text-green-800",
+                            "Draft" => "bg-yellow-100 text-yellow-800",
+                            "Private" => "bg-gray-100 text-gray-800",
+                            _ => "bg-gray-100 text-gray-800"
+                        };
+                    }
+
+                    <span class="absolute top-2 right-2 rounded-full px-2 py-1 text-xs font-semibold @statusClass">
+                        @course.Status
+                    </span>
+                </div>
+
+                <div class="course-content grid flex-1 grid-rows-[auto_auto_auto_auto_auto_auto] gap-3 px-4 pt-4 pb-2">
+                    <h3 class="course-title line-clamp-2 min-h-[3.5rem] text-lg font-semibold text-gray-900">@course.Title</h3>
+
+                    @if (!string.IsNullOrEmpty(course.Subtitle))
+                    {
+                        <p class="course-subtitle line-clamp-2 min-h-[2.5rem] text-sm text-gray-600">@course.Subtitle</p>
+                    }
+                    else
+                    {
+                        <div class="course-subtitle min-h-[2.5rem]"></div>
+                    }
+
+                    <div class="course-dates flex items-center justify-between text-sm text-gray-500">
+                        <span>Created: @course.CreatedAt.ToString("MMM dd, yyyy")</span>
+                        @if (course.UpdatedAt.HasValue)
+                        {
+                            <span>Updated: @course.UpdatedAt.Value.ToString("MMM dd, yyyy")</span>
+                        }
+                    </div>
+
+                    @if (course.Price.HasValue)
+                    {
+                        <div class="course-price">
+                            <span class="text-lg font-bold text-orange-600">$@course.Price.Value.ToString("F2")</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="course-price">
+                            <span class="text-lg font-bold text-green-500">Free</span>
+                        </div>
+                    }
+
+                    @if (course.Duration.HasValue)
+                    {
+                        <div class="course-duration flex items-center text-sm text-gray-500">
+                            <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>@course.Duration.Value.ToString(@"h\:mm\:ss")</span>
+                        </div>
+                    }
+
+                    <div class="course-actions mt-auto flex">
+                        <a asp-action="Manage" asp-route-id="@course.Id" asp-route-section="intended-learners"
+                           class="flex-1 rounded-lg bg-blue-500 px-3 py-2 text-center text-sm font-medium text-white transition-colors duration-200 hover:bg-blue-600">
+                            Edit
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const url = new URL(window.location);
+        const sortSelect = document.getElementById('sortSelect');
+        const btnSearchCourse = document.getElementById('search-course-btn');
+
+        btnSearchCourse.addEventListener('click', () => {
+            const searchValue = document.getElementById('default-search').value;
+            url.searchParams.set('search', searchValue);
+            window.location.href = url.toString();
+        });
+
+        sortSelect.addEventListener('change', function() {
+            const sortValue = this.value;
+            url.searchParams.set('sort', sortValue);
+            window.location.href = url.toString();
+        });
+
+    });
+
+</script>
