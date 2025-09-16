@@ -31,6 +31,9 @@ namespace UdemyClone.Models
         public TimeSpan? Duration { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public DateTime? ReviewdAt { get; set; }
+        public DateTime? RefusedAt { get; set; }
+        public string? ReasonForRejection { get; set; }
         [Required]
         public string Status { get; set; } // Draft, Published, Private
         public string? CourseLevelId { get; set; }

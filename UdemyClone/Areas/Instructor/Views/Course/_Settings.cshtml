@@ -1,0 +1,58 @@
+﻿@model Course
+
+@{
+    var hasCourseOutcomes = Model.CourseOutcomes.Any() == true;
+    var hasCourseSections = Model.CourseSections?.Any() == true;
+    var hasVideosInSections = Model.CourseSections?.Any(s => s.CourseVideos?.Any() == true) == true;
+
+    var isEligibleToPublish = hasCourseOutcomes &&
+                              hasCourseSections &&
+                              hasVideosInSections &&
+                              !string.IsNullOrEmpty(Model.Title) &&
+                              Model.CourseLevelId != null &&
+                              Model.CategoryId != null &&
+                              Model.SubcategoryId != null &&
+                              !string.IsNullOrEmpty(Model.ImageUrl) &&
+                              !string.IsNullOrEmpty(Model.PromotionVideoUrl);
+}
+
+<div class="w-full">
+    <h2 class="mb-8 text-2xl font-bold text-gray-900">Settings</h2>
+
+    <form id="course-status-form">
+        <input type="hidden" asp-for="Id" id="CourseId"/>
+        <h1 class="mb-1 text-sm font-bold text-gray-700">Course Status</h1>
+        @if (Model.Status == CourseStatus.PendingReview)
+        {
+            <!---->
+        }
+        else if (Model.Status != CourseStatus.Published)
+        {
+            <p class="mb-4 text-gray-600">
+                This course is not published on the EduPress marketplace.
+            </p>
+
+            <div class="flex items-center space-x-3">
+                <button id="publish-btn" type="button"
+                        class="cursor-pointer rounded-lg border border-orange-500 bg-orange-50 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100 focus:ring-2 focus:ring-orange-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-orange-50"
+                        @(!isEligibleToPublish ? "disabled" : "")>
+                    Publish
+                </button>
+            </div>
+        }
+        else
+        {
+            <p class="mb-4 text-gray-600">
+                This course is currently published on the EduPress marketplace.
+            </p>
+            <div class="flex items-center space-x-3">
+                <button id="change-to-private" type="button" class="cursor-pointer rounded-lg border border-orange-500 bg-orange-50 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                    Change to private
+                </button>
+            </div>
+        }
+        <button id="delete-course" type="button" class="mt-5 cursor-pointer rounded-lg border border-red-500 bg-red-50 py-2 text-sm font-medium text-red-700 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none">
+            Delete
+        </button>
+    </form>
+</div>

@@ -10,7 +10,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - EduPress</title>
+    <title>@Model.Title - EduPress</title>
     <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
     <!-- SortableJS CSS for styling -->
     <style>
@@ -31,38 +31,61 @@
 <body class="bg-gray-50">
     <!--Return header-->
     <div class="flex items-center justify-between border-b border-gray-200 bg-orange-500 px-8 py-4">
-        <div class="flex items-center space-x-10">
+        <div id="return-header" class="flex items-center space-x-8">
             <a id="back-to-courses-link" href="/Instructor/Course"
-               class="-mx-3 -my-2 flex items-center rounded px-3 py-2 text-white hover:text-gray-900">
+               class="flex items-center rounded text-white hover:text-gray-900">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2">
                     <path d="m15 18-6-6 6-6" />
                 </svg>
                 <span class="font-medium">Back to Courses</span>
             </a>
 
-            <!-- Status Badge -->
-            @{
-                string badgeClass = Model.Status switch
-                {
-                    "Published" => "bg-green-100 text-green-800 border-green-200",
-                    "Private" => "bg-blue-100 text-blue-800 border-blue-200",
-                    _ => "bg-yellow-100 text-yellow-800 border-yellow-200" // Draft
-                };
-            }
-
-            <span class="ms-3 items-center rounded-full border px-3 py-1 text-sm @badgeClass font-medium">
-                @Model.Status
+            <span class="max-w-lg items-center truncate text-lg font-bold text-white" title="@Model.Title">
+                @Model.Title
             </span>
 
+            <span class="text- items-center rounded bg-yellow-100 px-3 py-1 text-sm font-bold text-yellow-800">
+                @Model.Status.ToUpper()
+            </span>
+
+            @if (Model.Duration.HasValue && Model.Duration.Value > TimeSpan.Zero)
+            {
+                <span id="course-total-duration" class="text-sm font-medium text-white">
+                    @{
+                        var duration = Model.Duration.Value;
+                        var hours = (int)duration.TotalHours;
+                        var minutes = duration.Minutes;
+                        var seconds = duration.Seconds;
+
+                        if (hours > 0)
+                        {
+                            @($"{hours}hour {minutes}min")
+                        }
+                        else if (minutes > 1)
+                        {
+                            @($"{minutes}min")
+                        }
+                        else
+                        {
+                            @("1min")
+                        }
+                        @(" of video content uploaded")
+                    }
+                </span>
+            }
+            
         </div>
 
         <!-- Save Button -->
-        <div class="flex items-center">
+        <div class="flex items-center space-x-3">
             <button type="button" id="save-button"
-                    class="inline-flex cursor-pointer items-center rounded-lg bg-white px-4 py-2 text-sm font-medium text-orange-600 shadow-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    class="cursor-pointer items-center rounded-lg bg-white px-4 py-2 text-sm font-medium text-orange-600 shadow-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                     disabled>
                 Save
             </button>
+            <a data-tab="settings" class="nav-item flex cursor-pointer items-center rounded-lg bg-white p-3 text-gray-800 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings h-3.5 w-3.5"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /><circle cx="12" cy="12" r="3" /></svg>
+            </a>
         </div>
     </div>
     <div class="flex min-h-screen">
@@ -71,6 +94,7 @@
             <div class="p-6">
                 <h2 class="mb-6 items-center px-4 text-xl font-bold text-gray-800">Plan your course</h2>
                 <nav class="space-y-2">
+                    <input type="hidden" asp-for="@Model.Id" id="CourseId" />
                     <a data-tab="intended-learners" class="nav-item flex cursor-pointer items-center rounded-lg px-4 py-3 text-gray-700 transition-colors hover:bg-gray-100">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-users-round-icon lucide-users-round mr-3 h-5 w-5"><path d="M18 21a8 8 0 0 0-16 0" /><circle cx="10" cy="8" r="5" /><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3" /></svg>
                         Intended Learners
@@ -87,6 +111,24 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-dollar-sign-icon lucide-circle-dollar-sign mr-3 h-5 w-5"><circle cx="12" cy="12" r="10" /><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" /><path d="M12 18V6" /></svg>
                         Pricing
                     </a>
+                    <button type="button" id="submit-for-review-button"
+                            class="w-full cursor-pointer items-center rounded-lg bg-orange-500 py-4 text-sm font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-orange-500" @(Model.Status == CourseStatus.PendingReview ? "disabled" : "") >
+                        Submit for Review
+                    </button>
+                    @if (Model.Status == CourseStatus.PendingReview)
+                    {
+                        <div class="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
+                            <div class="flex space-x-1">
+                                <svg class="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                                <p class="text-sm font-medium text-blue-700">Course submitted for review</p>
+                            </div>
+                            <div class="text-sm text-blue-700">
+                                <p class="mt-1 text-blue-600">You'll receive an email notification once the review is complete.</p>
+                            </div>
+                        </div>
+                    }
                 </nav>
             </div>
         </div>
@@ -94,7 +136,7 @@
         <!-- Main Content Area -->
         <div class="flex-1 p-8">
             <div id="content-area">
-                <!-- Dynamic content will be loaded here -->
+                
             </div>
         </div>
     </div>
@@ -111,6 +153,8 @@
     <script src="~/js/SaveLandingPage.js"></script>
     <script src="~/js/pricing-page-function.js"></script>
     <script src="~/js/LectureFunction.js"></script>
+    <script src="~/js/settings-page-function.js"></script>
+    <script src="~/js/submit-course-function.js"></script>
     <script>
         let currentSection = '@currentSection';
         const courseId = '@Model.Id';
@@ -284,6 +328,11 @@
                 });
             });
 
+            const submitForReviewBtn = document.getElementById('submit-for-review-button');
+            submitForReviewBtn.addEventListener('click', (e) => {
+                submitForReview(e);
+            });
+
             function changeNavStyle(clickedItem) {
                 // Remove active class from all nav items
                 navItems.forEach(function(item) {
@@ -347,41 +396,42 @@
                     document.getElementById('content-area').innerHTML = data;
                     currentSection = section;
 
-                    // Reinitialize sortable functionality after content loads
-                    if (typeof window.initializeAllSortables === 'function') {
-                        window.initializeAllSortables();
+                    const saveButton = document.getElementById('save-button');
+
+                    if (section === 'intended-learners'){
+                        initializeAllSortables();
+                        if (saveButton.classList.contains('hidden')){
+                            saveButton.classList.remove('hidden');
+                        }
                     }
 
-                    if (typeof window.initializeCategorySubcategory === 'function') {
-                        window.initializeCategorySubcategory();
+                    if (section === 'curriculum'){
+                        initializeCurriculum();
+                        saveButton.classList.add('hidden');
                     }
 
-                    if (typeof window.InitializeTextEditor === 'function') {
-                        window.InitializeTextEditor();
-                    }
-
-                    if (typeof window.initializeImageUpload === 'function') {
-                        window.initializeImageUpload();
-                    }
-
-                    if(typeof window.initializeVideoUpload === 'function'){
-                        window.initializeVideoUpload();
-                    }
-
-                    if(typeof window.addInputListener === 'function'){
-                        window.addInputListener();
-                    }
-
-                    if(typeof window.initializeCurriculum === 'function'){
-                        window.initializeCurriculum();
-                    }
-
-                    if (section === 'landing-page') {
+                    if (section === 'landing-page'){
+                        initializeCategorySubcategory();
+                        InitializeTextEditor();
+                        initializeImageUpload();
+                        initializeVideoUpload();
+                        addInputListener();
                         setupLandingPageChangeListeners();
+                        if (saveButton.classList.contains('hidden')){
+                            saveButton.classList.remove('hidden');
+                        }
                     }
 
                     if (section === 'pricing'){
                         initializePricingPageFunction();
+                        if (saveButton.classList.contains('hidden')){
+                            saveButton.classList.remove('hidden');
+                        }
+                    }
+
+                    if (section === 'settings'){
+                        saveButton.classList.add('hidden');
+                        initializeSettingPageFunctions();
                     }
 
                     // Capture original form data after content loads

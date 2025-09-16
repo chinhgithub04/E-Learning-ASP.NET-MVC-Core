@@ -106,16 +106,6 @@
                         </div>
                     }
 
-                    @if (course.Duration.HasValue)
-                    {
-                        <div class="course-duration flex items-center text-sm text-gray-500">
-                            <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>@course.Duration.Value.ToString(@"h\:mm\:ss")</span>
-                        </div>
-                    }
-
                     <div class="course-actions mt-auto flex">
                         <a asp-action="Manage" asp-route-id="@course.Id" asp-route-section="intended-learners"
                            class="flex-1 rounded-lg bg-blue-500 px-3 py-2 text-center text-sm font-medium text-white transition-colors duration-200 hover:bg-blue-600">

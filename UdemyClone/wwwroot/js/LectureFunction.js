@@ -379,6 +379,8 @@
                                     }
                                 });
 
+                                updateCourseDuration(data.courseDuration);
+
                                 showNotification(true, data.message);
                             } else {
                                 showNotification(false, data.message || 'Failed to delete lecture');
@@ -509,6 +511,8 @@
                                     const sectionOrderInput = row.querySelector('input[name="DisplayOrder"]');
                                     sectionOrderInput.value = newOrder;
                                 });
+
+                                updateCourseDuration(data.courseDuration);
 
                                 showNotification(true, data.message);
                             }
@@ -883,7 +887,7 @@
                                 // update title and duration in the information section
                                 lectureVideoTitle.textContent = data.title;
 
-                                const formattedDuration = formatTimeSpan(data.duration);
+                                const formattedDuration = formatTimeSpan(data.lectureDuration);
                                 lectureVideoDuration.textContent = formattedDuration;
 
                                 const lectureDetail = lectureUploadVideo.parentElement;
@@ -909,6 +913,8 @@
                             lectureUploadVideo.classList.add('hidden');
                             lectureInformation.classList.remove('hidden');
                         }
+
+                        updateCourseDuration(data.courseDuration);
 
                         showNotification(true, data.message);
                     } else {
@@ -968,6 +974,32 @@
         xhr.send(formData);
     }
 
+    function updateCourseDuration(duration) {
+        const courseTotalDuration = document.getElementById('course-total-duration');
+        const formattedCourseDuration = formatCourseDuration(duration);
+
+        if (formattedCourseDuration !== '') {
+            if (courseTotalDuration) {
+                courseTotalDuration.textContent = formattedCourseDuration;
+            } else {
+                const manageHeader = document.getElementById('return-header');
+
+                courseTotalDurationSpan = document.createElement('span');
+                courseTotalDurationSpan.className = 'text-sm font-medium text-white';
+                courseTotalDurationSpan.id = 'course-total-duration';
+                courseTotalDurationSpan.innerHTML = formattedCourseDuration;
+
+                manageHeader.appendChild(courseTotalDurationSpan);
+            }
+        } else {
+            if (courseTotalDuration) {
+                courseTotalDuration.remove();
+            }
+        }
+
+        
+    }
+
     function formatTimeSpan(timeSpanString) {
         if (!timeSpanString) return '0:00';
 
@@ -981,6 +1013,26 @@
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         } else {
             return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+    }
+
+    function formatCourseDuration(timeSpanString) {
+        if (!timeSpanString) return '';
+
+        const parts = timeSpanString.split(':');
+
+        const hours = parseInt(parts[0], 10);
+        const minutes = parseInt(parts[1], 10);
+        const seconds = Math.floor(parseFloat(parts[2]));
+
+        if (hours > 0) {
+            return `${hours.toString()}hour ${minutes.toString()}min of video content uploaded`;
+        } else if (minutes > 1) {
+            return `${minutes.toString()}min of video content uploaded`;
+        } else if (seconds > 0) {
+            return `1min of video content uploaded`;
+        } else {
+            return ``;
         }
     }
 

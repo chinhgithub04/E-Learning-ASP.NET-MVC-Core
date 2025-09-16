@@ -42,6 +42,7 @@ namespace UdemyClone.Areas.Instructor.Controllers
                 _ => courses.OrderByDescending(c => c.CreatedAt)
             };
 
+            ViewBag.CurrentSearch = search;
             ViewBag.CurrentSort = sort;
             return View(courses);
         }
@@ -320,7 +321,7 @@ namespace UdemyClone.Areas.Instructor.Controllers
                     return Json(new { success = false, message = "Id not found"});
                 }
 
-                var courseSection = _unitOfWork.CourseSection.Get(c => c.Id == id, includeProperties: "CourseVideos,CourseVideos.CourseResources");
+                var courseSection = _unitOfWork.CourseSection.Get(c => c.Id == id, includeProperties: "CourseVideos,CourseVideos.CourseResources,Course");
                 if (courseSection == null)
                 {
                     return Json(new { success = false, message = "Cannot find this section" });
@@ -352,7 +353,9 @@ namespace UdemyClone.Areas.Instructor.Controllers
 
                 _unitOfWork.CourseSection.Remove(courseSection);
                 _unitOfWork.Save();
-                return Json(new { success = true, message = "Deleted successfully!" });
+
+                UpdateCourseDuration(courseSection.CourseId);
+                return Json(new { success = true, message = "Deleted successfully!", courseDuration = courseSection.Course.Duration });
 
             }
             catch (Exception e)
@@ -485,7 +488,7 @@ namespace UdemyClone.Areas.Instructor.Controllers
                     return Json(new { success = false, message = "Lecture not found." });
                 }
 
-                var courseVideo = _unitOfWork.CourseVideo.Get(c => c.Id == id, includeProperties: "CourseResources");
+                var courseVideo = _unitOfWork.CourseVideo.Get(c => c.Id == id, includeProperties: "CourseResources,CourseSection,CourseSection.Course");
                 if (courseVideo == null)
                 {
                     return Json(new { success = false, message = "Lecture not found." });
@@ -514,7 +517,9 @@ namespace UdemyClone.Areas.Instructor.Controllers
 
                     _unitOfWork.CourseVideo.Remove(courseVideo);
                     _unitOfWork.Save();
-                    return Json(new { success = true, message = "Lecture deleted successfully!" });
+
+                    UpdateCourseSectionDuration(courseVideo.CourseSectionId);
+                    return Json(new { success = true, message = "Lecture deleted successfully!", courseDuration = courseVideo.CourseSection.Course.Duration});
 
                 }
             } 
@@ -572,11 +577,86 @@ namespace UdemyClone.Areas.Instructor.Controllers
                 _unitOfWork.CourseVideo.Update(courseVideo);
                 _unitOfWork.Save();
 
-                return Json(new { success = true, message = "Video uploaded successfully.", title = courseVideo.Title, duration = duration });
+                UpdateCourseSectionDuration(courseVideo.CourseSectionId);
+
+                return Json(new { success = true, message = "Video uploaded successfully.", title = courseVideo.Title, lectureDuration = duration, courseDuration = courseVideo.CourseSection.Course.Duration });
             }
             catch (Exception e)
             {
                 return Json(new { success = false, message = "An error occurred during video upload." });
+            }
+        }
+
+        public void UpdateCourseSectionDuration(string courseSectionId)
+        {
+            try
+            {
+                var courseSection = _unitOfWork.CourseSection.Get(c => c.Id == courseSectionId, includeProperties: "CourseVideos");
+
+                if (courseSection == null)
+                {
+                    return;
+                } 
+                else
+                {
+                    var courseVideos = _unitOfWork.CourseVideo.GetAll(c => c.CourseSectionId == courseSectionId);
+
+                    TimeSpan duration = TimeSpan.Zero;
+
+                    foreach (var video in courseVideos)
+                    {
+                        if (video.Duration.HasValue)
+                        {
+                            duration += (TimeSpan) video.Duration;
+                        }
+                    }
+
+                    courseSection.Duration = duration;
+
+                    _unitOfWork.CourseSection.Update(courseSection);
+                    _unitOfWork.Save();
+
+                    UpdateCourseDuration(courseSection.CourseId);
+                }
+            }
+            catch (Exception e)
+            {
+                
+            }
+        }
+
+        public void UpdateCourseDuration (string courseId)
+        {
+            try
+            {
+                var course = _unitOfWork.Course.Get(c => c.Id == courseId, includeProperties: "CourseSections", tracked: true);
+                if (course == null)
+                {
+                    return;
+                }
+                else
+                {
+                    var courseSections = _unitOfWork.CourseSection.GetAll(c => c.CourseId == courseId);
+
+                    TimeSpan duration = TimeSpan.Zero;
+
+                    foreach (var section in courseSections)
+                    {
+                        if (section.Duration.HasValue)
+                        {
+                            duration += (TimeSpan)section.Duration;
+                        }
+                    }
+
+                    course.Duration = duration;
+
+                    _unitOfWork.Save();
+
+                }
+            }
+            catch (Exception e)
+            {
+
             }
         }
 
@@ -783,6 +863,84 @@ namespace UdemyClone.Areas.Instructor.Controllers
             }
         }
 
+        [HttpPost]
+        public IActionResult ReviewCourse([FromBody] string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = "Id not found" });
+                }
+
+                var course = _unitOfWork.Course.Get(c => c.Id == id, includeProperties: "CourseSections,CourseOutcomes,CourseRequirements,CourseSections.CourseVideos");
+                if (course == null)
+                {
+                    return Json(new { success = false, message = "Course not found" });
+                }
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (course.InstructorId != userId)
+                {
+                    return Json(new { success = false, message = "Unauthorized access." });
+                }
+
+                var hasCourseOutcomes = course.CourseOutcomes.Any() == true;
+                var hasRequiremenes = course.CourseRequirements.Any() == true;
+                var isCourseDurationGreaterThan30 = course.Duration >= TimeSpan.FromMinutes(30);
+                var hasAtLeastFiveVideosInSections = course.CourseSections?.Any(s => s.CourseVideos.ToList().Count() >= 5 == true) == true;
+                var hasTitle = !string.IsNullOrEmpty(course.Title);
+                var hasSubTitle = !string.IsNullOrEmpty(course.Subtitle);
+                var hasAtLeast200WordsDescription = course.Description?.Length >= 200;
+                var hasLevel = course.CourseLevelId != null;
+                var hasCategory = course.CategoryId != null;
+                var hasSubcategory = course.SubcategoryId != null;
+                var hasCourseImage = !string.IsNullOrEmpty(course.ImageUrl);
+
+                var isEligibleToPublish = hasCourseOutcomes &&
+                                          hasRequiremenes &&
+                                          isCourseDurationGreaterThan30 &&
+                                          hasAtLeastFiveVideosInSections &&
+                                          hasTitle &&
+                                          hasSubTitle &&
+                                          hasAtLeast200WordsDescription &&
+                                          hasLevel &&
+                                          hasCategory &&
+                                          hasSubcategory &&
+                                          hasCourseImage;
+
+                if (isEligibleToPublish)
+                {
+                    course.Status = CourseStatus.PendingReview;
+                    course.UpdatedAt = DateTime.UtcNow;
+                    _unitOfWork.Course.Update(course);
+                    _unitOfWork.Save();
+                    return Json(new { success = true, message = "Update successful. We'll notify you when your course is ready to go live." });
+                }
+                else
+                {
+                    return Json(new {
+                        success = false, 
+                        message = "Your course is not eligible for publishing. Please complete the information and try again.",
+                        hasCourseOutcomes = hasCourseOutcomes,
+                        hasRequiremenes = hasRequiremenes,
+                        isCourseDurationGreaterThan30 = isCourseDurationGreaterThan30,
+                        hasAtLeastFiveVideosInSections = hasAtLeastFiveVideosInSections,
+                        hasTitle = hasTitle,
+                        hasSubTitle = hasSubTitle,
+                        hasAtLeast200WordsDescription = hasAtLeast200WordsDescription,
+                        hasLevel = hasLevel,
+                        hasCategory = hasCategory,
+                        hasSubcategory = hasSubcategory,
+                        hasCourseImage = hasCourseImage
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while saving the pricing. Please try again." });
+            }
+        }
         [HttpGet]
         public IActionResult GetStepContent(int step)
         {
@@ -839,6 +997,7 @@ namespace UdemyClone.Areas.Instructor.Controllers
                 "curriculum" => PartialView("_Curriculum", course),
                 "landing-page" => PartialView("_LandingPage", landingPageVM),
                 "pricing" => PartialView("_Pricing", course),
+                "settings" => PartialView("_Settings", course),
                 _ => PartialView("_IntendedLearners", course)
             };
         }
