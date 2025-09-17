@@ -941,6 +941,109 @@ namespace UdemyClone.Areas.Instructor.Controllers
                 return Json(new { success = false, message = "An error occurred while saving the pricing. Please try again." });
             }
         }
+
+        [HttpPost]
+        public IActionResult PublishCourse([FromBody] string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = "Id not found" });
+                }
+
+                var course = _unitOfWork.Course.Get(c => c.Id == id);
+
+                if (course == null)
+                {
+                    return Json(new { success = false, message = "Course not found" });
+                }
+
+                if (!course.ReviewdAt.HasValue)
+                {
+                    return Json(new { success = false, message = "This course has not been reviewed yet. Please submit your course for review before publishing." });
+                }
+
+                course.Status = CourseStatus.Published;
+
+                _unitOfWork.Course.Update(course);
+                _unitOfWork.Save();
+                return Json(new { success = true, message = "Update successful. Your course is now published." });
+            }
+            catch (Exception ex) 
+            {
+                return Json(new { success = false, message = "An error occurred while we're trying to publish your course. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult UnpublishCourse([FromBody] string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = "Id not found" });
+                }
+
+                var course = _unitOfWork.Course.Get(c => c.Id == id);
+
+                if (course == null)
+                {
+                    return Json(new { success = false, message = "Course not found" });
+                }
+
+                if (course.Status != CourseStatus.Published)
+                {
+                    return Json(new { success = false, message = "This course has not been published yet." });
+                }
+
+                course.Status = CourseStatus.Unpublished;
+
+                _unitOfWork.Course.Update(course);
+                _unitOfWork.Save();
+                return Json(new { success = true, message = "Update successful. Your course is now unpublished." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while we're trying to unpublish your course. Please try again." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteCourse([FromBody] string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return Json(new { success = false, message = "Id not found" });
+                }
+
+                var course = _unitOfWork.Course.Get(c => c.Id == id);
+
+                if (course == null)
+                {
+                    return Json(new { success = false, message = "Course not found" });
+                }
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (course.InstructorId != userId)
+                {
+                    return Json(new { success = false, message = "Unauthorized access." });
+                }
+
+
+                _unitOfWork.Course.Remove(course);
+                _unitOfWork.Save();
+                return Json(new { success = true, message = "Deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while we're trying to delete your course. Please try again." });
+            }
+        }
+
         [HttpGet]
         public IActionResult GetStepContent(int step)
         {

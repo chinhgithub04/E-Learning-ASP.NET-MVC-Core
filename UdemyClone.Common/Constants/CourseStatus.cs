@@ -10,7 +10,7 @@ namespace UdemyClone.Common.Constants
     {
         public const string Draft = "Draft";
         public const string Published = "Published";
-        public const string Private = "Private";
+        public const string Unpublished = "Unpublished";
         public const string PendingReview = "Pending Review";
         public const string Reviewed = "Reviewed";
         public const string Refuse = "Refuse";
