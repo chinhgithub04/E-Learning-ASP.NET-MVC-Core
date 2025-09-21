@@ -13,6 +13,6 @@ namespace UdemyClone.Common.Constants
         public const string Unpublished = "Unpublished";
         public const string PendingReview = "Pending Review";
         public const string Reviewed = "Reviewed";
-        public const string Refuse = "Refuse";
+        public const string Refused = "Refused";
     }
 }

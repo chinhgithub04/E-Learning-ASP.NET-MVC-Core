@@ -1,6 +1,9 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using UdemyClone.Common.Constants;
+using UdemyClone.DataAccess.Interfaces;
 using UdemyClone.Models;
+using UdemyClone.ViewModel;
 
 namespace UdemyClone.Areas.User.Controllers
 {
@@ -8,15 +11,22 @@ namespace UdemyClone.Areas.User.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IUnitOfWork unitOfWork)
         {
             _logger = logger;
+            _unitOfWork = unitOfWork;
         }
 
         public IActionResult Index()
         {
-            return View();
+            CategoryCourseViewModel categoryCourseViewModel = new CategoryCourseViewModel
+            {
+                Category = _unitOfWork.Category.GetAll(),
+                Course = _unitOfWork.Course.GetAll(c => c.Status == CourseStatus.Published , includeProperties: "Subcategory,Instructor,Instructor.ApplicationUser,CourseLevel,CourseOutcomes")
+            };
+            return View(categoryCourseViewModel);
         }
 
         public IActionResult Privacy()
