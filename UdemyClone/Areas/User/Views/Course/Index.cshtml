@@ -1,0 +1,210 @@
+﻿@model Course
+
+@{
+    ViewData["Title"] = Model.Title;
+    int numberOfLecture = 0;
+    int numberOfResource = 0;
+    @if (Model.CourseSections.Any())
+    {
+        foreach (var section in Model.CourseSections)
+        {
+            if (section.CourseVideos.Any())
+            {
+                foreach (var video in section.CourseVideos)
+                {
+                    if (!string.IsNullOrEmpty(video.VideoUrl))
+                    {
+                        numberOfLecture += 1;
+                    }
+
+                    foreach (var resource in video.CourseResources)
+                    {
+                        if (!string.IsNullOrEmpty(resource.ResourceUrl))
+                        {
+                            numberOfResource += 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+<div class="bg-white pb-10">
+    <!--Top container-->
+    <div class="relative bg-gray-950">
+        <div class="relative container mx-auto flex justify-between">
+            <!-- Landing content-->
+            <div class="w-2/3 py-10 font-medium text-white">
+                <!-- Subcategory and Instructor Name-->
+                <div class="flex items-center space-x-4 text-sm font-medium">
+                    <div class="rounded bg-stone-500 px-3 py-2">@Model.Subcategory.Name</div>
+                    <div>
+                        <span class="font-normal text-gray-400">by</span>
+                        <span class="cursor-pointer underline hover:text-orange-500">@Model.Instructor.ApplicationUser.FirstName @Model.Instructor.ApplicationUser.LastName</span>
+                    </div>
+                </div>
+                <!-- Title-->
+                <div class="py-4 text-2xl">@Model.Title</div>
+                <!-- Subtitle-->
+                <div class="pb-4 font-light">@Model.Subtitle</div>
+                <!-- Meta-->
+                <div class="flex space-x-4 pb-4 text-sm text-orange-500">
+                    @if (Model.Duration.HasValue)
+                    {
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-clock"></i>
+                            <span class="text-gray-400">
+                                @if (Model.Duration.Value.TotalHours >= 1)
+                                {
+                                    @($"{(int)Model.Duration.Value.TotalHours} hours")
+                                }
+                                else
+                                {
+                                    @($"{(int)Model.Duration.Value.Minutes} minutes")
+                                }
+                            </span>
+                        </div>
+                    }
+
+                    @if (Model.CourseLevel != null)
+                    {
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-signal"></i>
+                            <span class="text-gray-400">
+                                @Model.CourseLevel.Name
+                            </span>
+                        </div>
+                    }
+
+                    @if (numberOfLecture > 0)
+                    {
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-file"></i>
+                            <span class="text-gray-400">
+                                @numberOfLecture lectures
+                            </span>
+                        </div>
+                    }
+
+                </div>
+                <!-- Update-->
+                @if (Model.UpdatedAt.HasValue)
+                {
+                    <div class="text-xs font-normal text-green-500">
+                        Last updated @Model.UpdatedAt.Value.ToString("MM/yyyy")
+                    </div>
+                }
+            </div>
+
+            <!-- Sidebar -->
+            <div class="absolute top-10 right-0 w-96 rounded-lg border border-gray-200 bg-white shadow-lg">
+                @if (!string.IsNullOrEmpty(Model.PromotionVideoUrl))
+                {
+                    <video controls class="w-full rounded-t-lg" poster="@Model.ImageUrl">
+                        <source src="@Model.PromotionVideoUrl" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                }
+                else if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="@Model.Title" class="w-full rounded-t-lg">
+                }
+
+                <div class="px-6 py-4">
+                    <div class="mb-2 text-3xl font-bold">
+                        @if (Model.Price.HasValue && Model.Price > 0)
+                        {
+                            <span class="text-red-500">@Model.Price.Value.ToString("C")</span>
+                        }
+                        else
+                        {
+                            <span class="text-green-600">Free</span>
+                        }
+                    </div>
+                    <div class="mb-2 flex items-center justify-between space-x-3">
+                        <button class="w-full cursor-pointer rounded-md bg-orange-500 py-3 font-bold text-white hover:bg-orange-600">Add to cart</button>
+                        <button class="cursor-pointer rounded-md border border-orange-500 p-3 hover:bg-orange-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart text-orange-500"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" /></svg>
+                        </button>
+                    </div>
+                    <button class="w-full cursor-pointer rounded-md border border-orange-500 bg-white py-3 font-bold text-orange-500 hover:bg-orange-50">Buy now</button>
+                    <div class="my-4 text-center text-xs text-gray-500">30-Day Money-Back Guarantee</div>
+                    <div class="font-medium">This course includes:</div>
+                    <ul class="my-2 space-y-2 text-sm text-gray-600">
+                        @if (Model.Duration.HasValue)
+                        {
+                            <li>
+                                <div class="flex items-center space-x-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tv-minimal-play-icon lucide-tv-minimal-play h-4 w-4"><path d="M15.033 9.44a.647.647 0 0 1 0 1.12l-4.065 2.352a.645.645 0 0 1-.968-.56V7.648a.645.645 0 0 1 .967-.56z" /><path d="M7 21h10" /><rect width="20" height="14" x="2" y="3" rx="2" /></svg>
+                                    <p>
+                                        @if (Model.Duration.Value.TotalHours >= 1)
+                                        {
+                                            @($"{(int)Model.Duration.Value.TotalHours} hours on-demand video")
+                                        }
+                                        else
+                                        {
+                                            @($"{(int)Model.Duration.Value.TotalMinutes} minutes on-demand video")
+                                        }
+                                    </p>
+                                </div>
+                            </li>
+                        }
+
+                        @if (numberOfResource > 0)
+                        {
+                            <li>
+                                <div class="flex items-center space-x-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-file-down-icon lucide-file-down h-4 w-4"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M12 18v-6" /><path d="m9 15 3 3 3-3" /></svg>
+                                    <p>
+                                        @numberOfResource downloadable resources
+                                    </p>
+                                </div>
+                            </li>
+                        }
+
+                        <li>
+                            <div class="flex items-center space-x-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-monitor-smartphone-icon lucide-monitor-smartphone h-4 w-4"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h8" /><path d="M10 19v-3.96 3.15" /><path d="M7 19h5" /><rect width="6" height="10" x="16" y="12" rx="2" /></svg>
+                                <p>
+                                    Access on mobile and TV
+                                </p>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="flex items-center space-x-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-infinity-icon lucide-infinity h-4 w-4"><path d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8" /></svg>
+                                <p>
+                                    Full lifetime access
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto mt-10">
+        <div class="w-3/5 rounded-md border border-gray-200">
+            <nav class="flex">
+                <a data-tab="Overview" class="flex-1 cursor-pointer rounded-tl-md border-r border-b border-gray-200 px-4 py-4 text-center text-sm font-medium text-gray-900 hover:bg-gray-100">Overview</a>
+                <a data-tab="Curriculum" class="flex-1 cursor-pointer border-r border-b border-gray-200 px-4 py-4 text-center text-sm font-medium text-gray-900 hover:bg-gray-100">Curriculum</a>
+                <a data-tab="Instructor" class="flex-1 cursor-pointer border-r border-b border-gray-200 px-4 py-4 text-center text-sm font-medium text-gray-900 hover:bg-gray-100">Instructor</a>
+                <a data-tab="Review" class="flex-1 cursor-pointer rounded-tr-md border-b border-gray-200 px-4 py-4 text-center text-sm font-medium text-gray-900 hover:bg-gray-100">Reviews</a>
+            </nav>
+            <div id="content-area" class="bg-gray-100 p-5">
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        const courseId = '@Model.Id';
+    </script>
+    <script src="~/js/course-tab.js"></script>
+    <script src="~/js/course-curriculum.js"></script>
+}

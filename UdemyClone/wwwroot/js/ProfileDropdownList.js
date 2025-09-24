@@ -11,6 +11,7 @@
 
     // Close dropdown when clicking outside
     document.addEventListener('click', function (event) {
+        event.stopPropagation();
         if (!dropDownContainer.contains(event.target)) {
             dropdownMenu.classList.add('hidden');
         }

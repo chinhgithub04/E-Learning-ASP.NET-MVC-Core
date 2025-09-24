@@ -1,0 +1,42 @@
+﻿@model Course
+
+<div class="space-y-5">
+    @if (Model.CourseOutcomes.Any())
+    {
+        <div class="space-y-3">
+            <h2 class="text-xl font-bold">What you'll learn</h2>
+            <ul class="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">
+                @foreach (var outcome in Model.CourseOutcomes.OrderBy(c => c.DisplayOrder))
+                {
+                    <li class="flex items-start space-x-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check mt-1 h-4 w-4 flex-shrink-0 text-gray-500"><path d="M20 6 9 17l-5-5" /></svg>
+                        <span>@outcome.Title</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+
+    @if (Model.CourseRequirements.Any())
+    {
+        <div class="space-y-3">
+            <h2 class="text-xl font-bold">Requirements</h2>
+            <ul class="list-disc space-y-2 pl-5">
+                @foreach (var requirement in Model.CourseRequirements.OrderBy(r => r.DisplayOrder))
+                {
+                    <li>@requirement.Title</li>
+                }
+            </ul>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.Description))
+    {
+        <div class="space-y-3">
+            <h2 class="text-xl font-bold">Description</h2>
+            <article class="prose max-w-none">
+                @Html.Raw(Model.Description)
+            </article>
+        </div>
+    }
+</div>
