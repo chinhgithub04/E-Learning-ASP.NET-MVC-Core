@@ -1,5 +1,7 @@
-using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
+using System.Security.Claims;
 using UdemyClone.Common.Constants;
 using UdemyClone.DataAccess.Interfaces;
 using UdemyClone.Models;
@@ -28,6 +30,7 @@ namespace UdemyClone.Areas.User.Controllers
             };
             return View(categoryCourseViewModel);
         }
+
 
         public IActionResult Privacy()
         {
