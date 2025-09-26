@@ -1,4 +1,7 @@
 ﻿@model CategoryCourseViewModel
+@using System.Security.Claims;
+@inject UdemyClone.DataAccess.Interfaces.IUnitOfWork _unitOfWork
+
 
 @{
     ViewData["Title"] = "Online Course - Learn Anything";
@@ -100,6 +103,7 @@
             <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 @foreach (var course in Model.Course.Take(9))
                 {
+                    
                     <div class="group relative">
                         <!-- Course Card -->
                         <a target="_blank" asp-area="User" asp-controller="Course" asp-action="Index" asp-route-id="@course.Id" class="block cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-xl">
@@ -247,14 +251,28 @@
 
                             <!-- Action Buttons -->
                             <div class="space-y-3">
-                                <button class="add-to-cart w-full cursor-pointer rounded-lg bg-orange-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-700"
-                                        data-course-id="@course.Id"
-                                        data-course-title="@course.Title"
-                                        data-course-image="@(course.ImageUrl ?? "/img/course-image-placeholder.webp")"
-                                        data-instructor-name="@(course.Instructor?.ApplicationUser != null ? $"{course.Instructor.ApplicationUser.FirstName} {course.Instructor.ApplicationUser.LastName}" : "Unknown Instructor")"
-                                        data-course-price="@(course.Price.HasValue && course.Price.Value > 0 ? $"${course.Price.Value}" : "Free")">
-                                    Add to Cart
-                                </button>
+                                @{
+                                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                                    var isInCart = userId != null && _unitOfWork.Cart.Get(c => c.ApplicationUserId == userId && c.CourseId == course.Id) != null;
+                                }
+                                @if (isInCart)
+                                {
+                                    <a asp-area="User" asp-controller="Cart" asp-action="Index" class="block w-full rounded-lg bg-orange-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-orange-700">
+                                        Go to cart
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button class="add-to-cart w-full cursor-pointer rounded-lg bg-orange-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-700"
+                                            data-course-id="@course.Id"
+                                            data-course-title="@course.Title"
+                                            data-course-image="@(course.ImageUrl ?? "/img/course-image-placeholder.webp")"
+                                            data-instructor-name="@(course.Instructor?.ApplicationUser != null ? $"{course.Instructor.ApplicationUser.FirstName} {course.Instructor.ApplicationUser.LastName}" : "Unknown Instructor")"
+                                            data-course-price="@(course.Price.HasValue && course.Price.Value > 0 ? $"${course.Price.Value}" : "Free")">
+                                        Add to cart
+                                    </button>
+                                }
+                                
                                 <button class="w-full cursor-pointer rounded-lg border border-gray-300 bg-white py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50" onclick="event.stopPropagation();">
                                     <svg class="mr-1 inline-block h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>

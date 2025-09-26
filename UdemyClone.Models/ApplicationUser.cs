@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,5 +23,7 @@ namespace UdemyClone.Models
         [StringLength(50)]
         [DisplayName("Last Name")]
         public string LastName { get; set; }
+        [ValidateNever]
+        public IEnumerable<Cart> Carts { get; set; }
     }
 }

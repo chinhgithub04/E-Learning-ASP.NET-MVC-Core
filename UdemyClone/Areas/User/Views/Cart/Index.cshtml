@@ -1,5 +1,216 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model IEnumerable<Cart>
+
 @{
+    ViewData["Title"] = "Shopping Cart";
+    var cartItems = Model?.ToList() ?? new List<Cart>();
+    var totalPrice = cartItems.Where(c => c.Course.Price.HasValue).Sum(c => c.Course.Price.Value);
+    var freeCoursesCount = cartItems.Count(c => !c.Course.Price.HasValue || c.Course.Price.Value == 0);
+}
+
+<div class="min-h-screen bg-gray-100 py-8">
+    <div class="container mx-auto px-4">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Shopping Cart</h1>
+            <p class="mt-2 text-gray-600">@cartItems.Count item@(cartItems.Count != 1 ? "s" : "") in your cart</p>
+        </div>
+
+        @if (!cartItems.Any())
+        {
+            <!-- Empty Cart -->
+            <div class="rounded-lg bg-white p-12 text-center shadow-sm">
+                <div class="mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-24 w-24 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
+                    </svg>
+                </div>
+                <h2 class="mb-2 text-2xl font-semibold text-gray-900">Your cart is empty</h2>
+                <p class="mb-6 text-gray-600">Keep shopping to find a course!</p>
+                <a asp-area="User" asp-controller="Home" asp-action="Index" class="inline-block rounded-md bg-orange-500 px-6 py-3 font-medium text-white transition duration-200 hover:bg-orange-600">
+                    Keep shopping
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="flex flex-col gap-8 lg:flex-row">
+                <!-- Cart Items -->
+                <div class="flex-1">
+                    <div class="rounded-lg bg-white shadow-sm">
+                        <!-- Cart Header -->
+                        <div class="border-b border-gray-200 px-6 py-4">
+                            <h2 class="text-lg font-semibold text-gray-900">Course List</h2>
+                        </div>
+
+                        <!-- Cart Items List -->
+                        <div class="divide-y divide-gray-200">
+                            @foreach (var cartItem in cartItems)
+                            {
+                                <div class="cart-item flex items-start space-x-4 p-6" data-cart-id="@cartItem.Id">
+                                    <a asp-area="User" asp-controller="Course" asp-action="Index" asp-route-id="@cartItem.CourseId" class="flex flex-1 items-start space-x-4">
+                                        <!-- Course Image -->
+                                        <div class="flex-shrink-0">
+                                            <img src="@(cartItem.Course.ImageUrl ?? "/img/course-image-placeholder.webp")"
+                                                 alt="@cartItem.Course.Title"
+                                                 class="h-14 w-20 rounded-md object-cover">
+                                        </div>
+
+                                        <!-- Course Details -->
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-start justify-between">
+                                                <div class="flex-1">
+                                                    <!-- Course Title -->
+                                                    <h3 class="cursor-pointer text-base font-medium text-gray-900">
+                                                        @cartItem.Course.Title
+                                                    </h3>
+
+                                                    <!-- Instructor -->
+                                                    <p class="mt-1 text-sm text-gray-600">
+                                                        <span class="font-normal">by</span>
+                                                        <span class="cursor-pointer">
+                                                            @cartItem.Course.Instructor?.ApplicationUser?.FirstName @cartItem.Course.Instructor?.ApplicationUser?.LastName
+                                                        </span>
+                                                    </p>
+
+                                                    <!-- Course Meta -->
+                                                    <div class="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+                                                        @if (cartItem.Course.Duration.HasValue)
+                                                        {
+                                                            <div class="flex items-center space-x-1">
+                                                                <i class="fa-solid fa-clock"></i>
+                                                                <span>
+                                                                    @if (cartItem.Course.Duration.Value.TotalHours >= 1)
+                                                                    {
+                                                                        @($"{(int)cartItem.Course.Duration.Value.TotalHours} hours")
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        @($"{cartItem.Course.Duration.Value.Minutes} minutes")
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                        }
+
+                                                        @if (cartItem.Course.CourseSections.Any())
+                                                        {
+                                                            var numberOfLectures = 0;
+                                                            foreach (var section in cartItem.Course.CourseSections)
+                                                            {
+                                                                if (section.CourseVideos.Any())
+                                                                {
+                                                                    foreach (var video in section.CourseVideos)
+                                                                    {
+                                                                        if (!string.IsNullOrEmpty(video.VideoUrl))
+                                                                        {
+                                                                            numberOfLectures += 1;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                            <div class="flex items-center space-x-1">
+                                                                <i class="fa-solid fa-file"></i>
+                                                                <span>@numberOfLectures lectures</span>
+                                                            </div>
+                                                        }
+
+                                                        @if (cartItem.Course.CourseLevel != null)
+                                                        {
+                                                            <div class="flex items-center space-x-1">
+                                                                <i class="fa-solid fa-signal"></i>
+                                                                <span>@cartItem.Course.CourseLevel.Name</span>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+
+                                                <!-- Price -->
+                                                <div class="text-right">
+                                                    @if (cartItem.Course.Price.HasValue && cartItem.Course.Price.Value > 0)
+                                                    {
+                                                        <div class="text-lg font-bold text-gray-900">@cartItem.Course.Price.Value.ToString("C")</div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="text-lg font-bold text-green-600">Free</div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    <!-- Remove Button -->
+                                    <button class="remove-from-cart cursor-pointer text-gray-400 transition duration-200 hover:text-red-500"
+                                            data-cart-id="@cartItem.Id"
+                                            title="Remove from cart">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Checkout Sidebar -->
+                <div class="lg:w-80">
+                    <div class="sticky top-8 rounded-lg bg-white shadow-sm">
+                        <!-- Total Section -->
+                        <div class="border-b border-gray-200 p-6">
+                            <h3 class="mb-4 text-lg font-semibold text-gray-900">Order Summary</h3>
+
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Subtotal (@cartItems.Count course@(cartItems.Count != 1 ? "s" : "")):</span>
+                                    <span class="font-medium">@totalPrice.ToString("C")</span>
+                                </div>
+
+                                @if (freeCoursesCount > 0)
+                                {
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-gray-600">Free courses:</span>
+                                        <span class="font-medium text-green-600">@freeCoursesCount course@(freeCoursesCount != 1 ? "s" : "")</span>
+                                    </div>
+                                }
+
+                                <hr class="my-3">
+
+                                <div class="flex justify-between text-lg font-bold">
+                                    <span>Total:</span>
+                                    <span class="text-orange-500">@totalPrice.ToString("C")</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Checkout Actions -->
+                        <div class="p-6">
+                            <button class="mb-3 w-full cursor-pointer rounded-md bg-orange-500 px-4 py-3 font-medium text-white transition duration-200 hover:bg-orange-600">
+                                Proceed to checkout
+                            </button>
+                        </div>
+
+                        <!-- Money Back Guarantee -->
+                        <div class="px-6 pb-6">
+                            <div class="rounded-lg bg-gray-50 p-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-900">30-Day Money-Back Guarantee</p>
+                                        <p class="text-xs text-gray-600">Full lifetime access</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="/js/delete-cart-and-check-out.js"></script>
 }

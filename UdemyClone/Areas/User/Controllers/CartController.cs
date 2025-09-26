@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using UdemyClone.Common.Constants;
 using UdemyClone.DataAccess.Interfaces;
 using UdemyClone.Models;
 
@@ -26,7 +27,7 @@ namespace UdemyClone.Areas.User.Controllers
                     return BadRequest();
                 }
 
-                var cartItems = _unitOfWork.Cart.GetAll(c => c.ApplicationUserId == userId, includeProperties: "Course,Course.Instructor,Course.Instructor.ApplicationUser,Course.CourseLevel");
+                var cartItems = _unitOfWork.Cart.GetAll(c => c.ApplicationUserId == userId, includeProperties: "Course,Course.Instructor,Course.Instructor.ApplicationUser,Course.CourseLevel,Course.CourseSections,Course.CourseSections.CourseVideos").OrderByDescending(c => c.CreatedAt);
                 if (cartItems == null)
                 {
                     return NotFound();
@@ -74,7 +75,36 @@ namespace UdemyClone.Areas.User.Controllers
                 _unitOfWork.Cart.Add(newCart);
                 _unitOfWork.Save();
 
+                HttpContext.Session.SetInt32(SessionName.ShoppingCartSession, _unitOfWork.Cart.GetAll(c => c.ApplicationUserId == userId).Count());
+
                 return Json(new { success = true, message = "Course added to cart successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An unexpected error occurred: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult RemoveFromCart([FromBody] string cartId)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(cartId) || string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, message = "Invalid cart or user." });
+                }
+                var cartItem = _unitOfWork.Cart.Get(c => c.Id == cartId && c.ApplicationUserId == userId);
+                if (cartItem == null)
+                {
+                    return Json(new { success = false, message = "Cart item not found." });
+                }
+                _unitOfWork.Cart.Remove(cartItem);
+                _unitOfWork.Save();
+
+                HttpContext.Session.SetInt32(SessionName.ShoppingCartSession, _unitOfWork.Cart.GetAll(c => c.ApplicationUserId == userId).Count());
+                return Json(new { success = true, message = "Course removed from cart successfully." });
             }
             catch (Exception ex)
             {
