@@ -250,20 +250,20 @@
                             }
 
                             <!-- Action Buttons -->
-                            <div class="space-y-3">
+                            <div class="action-btn-container space-y-3">
                                 @{
                                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                                     var isInCart = userId != null && _unitOfWork.Cart.Get(c => c.ApplicationUserId == userId && c.CourseId == course.Id) != null;
                                 }
                                 @if (isInCart)
                                 {
-                                    <a asp-area="User" asp-controller="Cart" asp-action="Index" class="block w-full rounded-lg bg-orange-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-orange-700">
+                                    <a asp-area="User" asp-controller="Cart" asp-action="Index" class="block w-full rounded-lg bg-orange-500 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-orange-600">
                                         Go to cart
                                     </a>
                                 }
                                 else
                                 {
-                                    <button class="add-to-cart w-full cursor-pointer rounded-lg bg-orange-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-700"
+                                    <button class="add-to-cart w-full cursor-pointer rounded-lg bg-orange-500 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
                                             data-course-id="@course.Id"
                                             data-course-title="@course.Title"
                                             data-course-image="@(course.ImageUrl ?? "/img/course-image-placeholder.webp")"

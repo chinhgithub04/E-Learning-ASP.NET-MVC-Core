@@ -19,6 +19,9 @@ namespace UdemyClone.DataAccess.Interfaces
         ICourseVideoRepository CourseVideo { get; }
         ICourseResourceRepository CourseResource { get; }
         ICartRepository Cart{ get; }
+        IOrderHeaderRepository OrderHeader { get; }
+        IOrderDetailRepository OrderDetail { get; }
+        IApplicationUserRepository ApplicationUser { get; }
         void Save();
     }
 }

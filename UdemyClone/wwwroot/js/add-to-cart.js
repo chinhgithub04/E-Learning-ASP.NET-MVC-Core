@@ -34,7 +34,27 @@ function initializeAddToCart() {
                 if (data) {
                     if (data.success) {
                         showSuccessAlert(buttonElement, data.message);
-                    } else {
+
+                        const actionButtonContainer = buttonElement.parentElement;
+
+                        const goToCartBtn = document.createElement('a');
+
+                        if (window.location.pathname.toLowerCase() === '/user/home/index' || window.location.pathname === '/') {
+                            goToCartBtn.className = 'block w-full rounded-lg bg-orange-500 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-orange-600'
+                        }
+                        else {
+                            goToCartBtn.className = 'block w-full cursor-pointer rounded-md bg-orange-500 py-3 text-center font-bold text-white hover:bg-orange-600';
+                        }
+
+                        goToCartBtn.href = '/User/Cart/Index';
+                        goToCartBtn.textContent = 'Go to cart'
+
+                        buttonElement.remove();
+                        actionButtonContainer.insertBefore(goToCartBtn, actionButtonContainer.firstChild);
+                        
+
+                    } 
+                    else {
                         Swal.fire({
                             icon: 'error',
                             title: 'Oops...',

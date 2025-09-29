@@ -47,6 +47,7 @@
                             @foreach (var cartItem in cartItems)
                             {
                                 <div class="cart-item flex items-start space-x-4 p-6" data-cart-id="@cartItem.Id">
+                                    <input type="hidden" asp-for="@cartItem.CourseId" name="CourseId" />
                                     <a asp-area="User" asp-controller="Course" asp-action="Index" asp-route-id="@cartItem.CourseId" class="flex flex-1 items-start space-x-4">
                                         <!-- Course Image -->
                                         <div class="flex-shrink-0">
@@ -183,7 +184,7 @@
 
                         <!-- Checkout Actions -->
                         <div class="p-6">
-                            <button class="mb-3 w-full cursor-pointer rounded-md bg-orange-500 px-4 py-3 font-medium text-white transition duration-200 hover:bg-orange-600">
+                            <button id="checkout" class="mb-3 w-full cursor-pointer rounded-md bg-orange-500 px-4 py-3 font-medium text-white transition duration-200 hover:bg-orange-600">
                                 Proceed to checkout
                             </button>
                         </div>
@@ -212,5 +213,6 @@
 </div>
 
 @section Scripts {
-    <script src="/js/delete-cart-and-check-out.js"></script>
+    <script src="/js/delete-cart.js"></script>
+    <script src="/js/checkout.js"></script>
 }

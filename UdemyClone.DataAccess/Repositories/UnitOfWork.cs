@@ -28,6 +28,9 @@ namespace UdemyClone.DataAccess.Repositories
         public ICourseVideoRepository CourseVideo { get; private set; } 
         public ICourseResourceRepository CourseResource { get; private set; }
         public ICartRepository Cart { get; private set; }
+        public IOrderHeaderRepository OrderHeader { get; private set; }
+        public IOrderDetailRepository OrderDetail { get; private set; }
+        public IApplicationUserRepository ApplicationUser { get; private set; }
 
         private readonly ApplicationDbContext _db;
         public UnitOfWork(ApplicationDbContext db)
@@ -44,6 +47,9 @@ namespace UdemyClone.DataAccess.Repositories
             CourseVideo = new CourseVideoRepository(_db);
             CourseResource = new CourseResourceRepository(_db);
             Cart = new CartRepository(_db);
+            OrderHeader = new OrderHeaderRepository(_db);
+            OrderDetail = new OrderDetailRepository(_db);
+            ApplicationUser = new ApplicationUserRepository(_db);
         }
         public void Save()
         {
