@@ -9,245 +9,231 @@
             courses.Add(orderDetail.Course);
         }
     }
+    
+    var categories = courses.Select(c => c.Category).Distinct().ToList();
 }
 
 <div class="space-y-6">
     @if (courses.Any())
     {
-        <!-- Header Section -->
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-2xl font-bold text-gray-900">My Courses</h2>
-                <p class="text-gray-600">@courses.Count() course@(courses.Count() != 1 ? "s" : "") enrolled</p>
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex-1 lg:max-w-md">
+                <div class="relative">
+                    <input type="text" 
+                           id="courseSearch" 
+                           placeholder="Search my courses" 
+                           class="placeholder-gray-400 w-full rounded-lg border border-gray-300 py-2.5 pr-4 pl-10 text-gray-900 transition-colors focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                    <i class="fas fa-search absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"></i>
+                </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <!-- Sort Dropdown -->
-                <select class="rounded-md border-gray-300 text-sm focus:border-orange-500 focus:ring-orange-500">
-                    <option value="recent">Recently Accessed</option>
-                    <option value="title">Title A-Z</option>
-                    <option value="progress">Progress</option>
-                </select>
-                <!-- View Toggle -->
-                <div class="flex rounded-lg border border-gray-300">
-                    <button class="view-toggle rounded-l-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-900" data-view="grid">
-                        <i class="fas fa-th-large"></i>
+
+            <div class="flex flex-wrap gap-3">
+                <!-- Category -->
+                <div class="relative">
+                    <button id="categoryFilterBtn" 
+                            class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-orange-500/20 focus:outline-none">
+                        <i class="fas fa-folder text-gray-500"></i>
+                        <span id="categoryFilterText">All Categories</span>
+                        <i class="fas fa-chevron-down text-xs text-gray-500"></i>
                     </button>
-                    <button class="view-toggle rounded-r-lg px-3 py-2 text-sm font-medium text-gray-700" data-view="list">
-                        <i class="fas fa-list"></i>
+                    <div id="categoryDropdown" 
+                         class="absolute top-full right-0 z-10 mt-2 hidden w-56 rounded-lg border border-gray-200 bg-white shadow-lg">
+                        <div class="max-h-60 overflow-y-auto py-2">
+                            <button class="category-option flex w-full cursor-pointer items-center px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-600" data-category="all">
+                                <i class="fas fa-check invisible mr-2 text-orange-500"></i>
+                                <span>All Categories</span>
+                            </button>
+                            @foreach (var category in categories.Where(c => c != null))
+                            {
+                                <button class="category-option flex w-full cursor-pointer items-center px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-600" data-category="@category.Id">
+                                    <i class="fas fa-check invisible mr-2 text-orange-500"></i>
+                                    <span>@category.Name</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress -->
+                <div class="relative">
+                    <button id="progressFilterBtn"
+                            class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-orange-500/20 focus:outline-none">
+                        <i class="fas fa-chart-line text-gray-500"></i>
+                        <span id="progressFilterText">All Progress</span>
+                        <i class="fas fa-chevron-down text-xs text-gray-500"></i>
                     </button>
+                    <div id="progressDropdown" 
+                         class="absolute top-full right-0 z-10 mt-2 hidden w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
+                        <div class="py-2">
+                            <button class="progress-option flex w-full cursor-pointer items-center px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-600" data-progress="all">
+                                <i class="fas fa-check invisible mr-2 text-orange-500"></i>
+                                <span>All Progress</span>
+                            </button>
+                            <button class="progress-option flex w-full cursor-pointer items-center px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-600" data-progress="not-started">
+                                <i class="fas fa-check invisible mr-2 text-orange-500"></i>
+                                <span>Not Started</span>
+                            </button>
+                            <button class="progress-option flex w-full cursor-pointer items-center px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-600" data-progress="in-progress">
+                                <i class="fas fa-check invisible mr-2 text-orange-500"></i>
+                                <span>In Progress</span>
+                            </button>
+                            <button class="progress-option flex w-full cursor-pointer items-center px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-600" data-progress="completed">
+                                <i class="fas fa-check invisible mr-2 text-orange-500"></i>
+                                <span>Completed</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <button id="sortBtn"
+                            class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-orange-500/20 focus:outline-none">
+                        <i class="fas fa-sort text-gray-500"></i>
+                        <span id="sortText">Recently Enrolled</span>
+                        <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+                    </button>
+                    <div id="sortDropdown" 
+                         class="absolute top-full right-0 z-10 mt-2 hidden w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
+                        <div class="py-2">
+                            <button class="sort-option flex w-full cursor-pointer items-center px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-600" data-sort="recent">
+                                <i class="fas fa-check invisible mr-2 text-orange-500"></i>
+                                <span>Recently Enrolled</span>
+                            </button>
+                            <button class="sort-option flex w-full cursor-pointer items-center px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-600" data-sort="title-asc">
+                                <i class="fas fa-check invisible mr-2 text-orange-500"></i>
+                                <span>Title: A-Z</span>
+                            </button>
+                            <button class="sort-option flex w-full cursor-pointer items-center px-4 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-600" data-sort="title-desc">
+                                <i class="fas fa-check invisible mr-2 text-orange-500"></i>
+                                <span>Title: Z-A</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Course Grid View -->
-        <div id="grid-view" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+            <p class="text-sm text-gray-600">
+                <span id="resultsCount">@courses.Count</span> course@(courses.Count != 1 ? "s" : "")
+            </p>
+            <button id="clearFilters" class="hidden cursor-pointer text-sm text-orange-600 hover:text-orange-700">
+                <i class="fas fa-times mr-1"></i> Clear filters
+            </button>
+        </div>
+
+        <!-- Courses card -->
+        <div id="coursesGrid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             @foreach (var course in courses)
             {
-                <div class="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
+                var progressData = ViewBag.ProgressData as IEnumerable<UserCourseProgress>;
+                var courseProgress = progressData?.FirstOrDefault(p => p.CourseId == course.Id);
+                var progressPercentage = courseProgress?.ProgressPercentage ?? 0;
+
+                <div class="course-card group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg" 
+                     data-course-id="@course.Id"
+                     data-category-id="@(course.CategoryId ?? "")"
+                     data-title="@course.Title?.ToLower()"
+                     data-progress="@progressPercentage">
+                    
                     <!-- Course Image -->
-                    <div class="relative aspect-video overflow-hidden">
+                    <div class="relative block aspect-video overflow-hidden bg-gray-100">
                         @if (!string.IsNullOrEmpty(course.ImageUrl))
                         {
-                            <img src="@course.ImageUrl" alt="@course.Title" class="h-full w-full object-cover transition-all duration-300 group-hover:brightness-90">
+                            <img src="@course.ImageUrl" 
+                                 alt="@course.Title" 
+                                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105">
                         }
                         else
                         {
-                            <div class="flex h-full w-full items-center justify-center bg-gray-200">
-                                <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
+                            <div class="flex h-full items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600">
+                                <i class="fas fa-book text-4xl text-white opacity-50"></i>
                             </div>
                         }
-
-                        <!-- Progress Overlay -->
-                        <div class="bg-opacity-75 absolute right-0 bottom-0 left-0 bg-black p-2">
-                            <div class="flex items-center justify-between text-xs text-white">
-                                <span>Progress: 0%</span>
-                                <span>0/0 lectures</span>
-                            </div>
-                            <div class="mt-1 h-1 w-full rounded-full bg-gray-600">
-                                <div class="h-1 rounded-full bg-orange-500" style="width: 0%"></div>
-                            </div>
-                        </div>
-
+                        
                         <!-- Play Button Overlay -->
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                            <button class="bg-opacity-90 rounded-full bg-white p-3 shadow-lg transition-transform duration-300 hover:scale-110">
-                                <svg class="h-6 w-6 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z" />
-                                </svg>
-                            </button>
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg transition-transform duration-300 group-hover:scale-110">
+                                <i class="fas fa-play ml-1 text-2xl text-orange-600"></i>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Course Content -->
-                    <div class="p-4">
-                        <!-- Instructor -->
-                        @if (course.Instructor?.ApplicationUser != null)
-                        {
-                            <div class="mb-2 text-sm text-gray-600">
-                                by @course.Instructor.ApplicationUser.FirstName @course.Instructor.ApplicationUser.LastName
-                            </div>
-                        }
-
-                        <!-- Title -->
-                        <h3 class="mb-2 line-clamp-2 text-lg font-semibold text-gray-900 group-hover:text-orange-600">
+                    <div class="flex flex-1 flex-col p-4">
+                        <!-- Course Title -->
+                        <h3 class="mb-2 line-clamp-2 text-base font-semibold text-gray-900 transition-colors group-hover:text-orange-600">
                             @course.Title
                         </h3>
 
-                        <!-- Course Meta -->
-                        <div class="flex items-center space-x-4 text-sm text-gray-500">
-                            @if (course.Duration.HasValue)
-                            {
-                                <span class="flex items-center">
-                                    <i class="fas fa-clock mr-1 text-orange-500"></i>
-                                    @if (course.Duration.Value.TotalHours >= 1)
-                                    {
-                                        @($"{(int)course.Duration.Value.TotalHours}h {course.Duration.Value.Minutes}m")
-                                    }
-                                    else
-                                    {
-                                        @($"{course.Duration.Value.Minutes}m")
-                                    }
-                                </span>
-                            }
-                            @if (course.CourseLevel != null)
-                            {
-                                <span class="flex items-center">
-                                    <i class="fas fa-signal mr-1 text-orange-500"></i>
-                                    @course.CourseLevel.Name
-                                </span>
-                            }
-                        </div>
+                        <!-- Instructor Name -->
+                        <p class="mb-3 text-sm text-gray-600">
+                            @(course.Instructor?.ApplicationUser?.FirstName ?? "Unknown") @(course.Instructor?.ApplicationUser?.LastName ?? "Instructor")
+                        </p>
 
-                        <!-- Action Buttons -->
-                        <div class="mt-4 flex space-x-2">
-                            <a href="#" class="flex-1 rounded-md bg-orange-500 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-orange-600">
-                                Continue Learning
-                            </a>
-                            <button class="rounded-md border border-gray-300 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-50">
-                                <i class="fas fa-ellipsis-h"></i>
-                            </button>
+                        <!-- Progress Section -->
+                        <div class="mt-auto">
+                            @if (progressPercentage > 0)
+                            {
+                                <div class="mb-2 flex items-center justify-between text-xs">
+                                    <span class="font-medium text-gray-700">@progressPercentage.ToString("F0")% complete</span>
+                                    @if (progressPercentage >= 100)
+                                    {
+                                        <span class="flex items-center text-green-600">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            Completed
+                                        </span>
+                                    }
+                                </div>
+                                <div class="h-2 overflow-hidden rounded-full bg-gray-200">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-orange-500 to-orange-600 transition-all duration-300" 
+                                         style="width: @(progressPercentage)%"></div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-gray-500">Not started</span>
+                                    <span class="font-medium text-orange-600">
+                                        Start course <i class="fas fa-arrow-right ml-1"></i>
+                                    </span>
+                                </div>
+                            }
                         </div>
+                    </div>
+
+                    <div class="absolute top-2 right-2 z-10 transition-opacity duration-300 group-hover:opacity-100">
+                        <button class="course-action-btn flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-white shadow-md transition-colors hover:bg-orange-50 hover:text-orange-600" 
+                                title="More options"
+                                onclick="event.stopPropagation();">
+                            <i class="fas fa-ellipsis-v text-sm"></i>
+                        </button>
                     </div>
                 </div>
             }
         </div>
 
-        <!-- Course List View -->
-        <div id="list-view" class="hidden space-y-4">
-            @foreach (var course in courses)
-            {
-                <div class="group flex overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
-                    <!-- Course Image -->
-                    <div class="relative w-48 flex-shrink-0">
-                        <div class="aspect-video overflow-hidden">
-                            @if (!string.IsNullOrEmpty(course.ImageUrl))
-                            {
-                                <img src="@course.ImageUrl" alt="@course.Title" class="h-full w-full object-cover">
-                            }
-                            else
-                            {
-                                <div class="flex h-full w-full items-center justify-center bg-gray-200">
-                                    <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                </div>
-                            }
-                        </div>
-
-                        <!-- Play Button Overlay -->
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                            <button class="bg-opacity-90 rounded-full bg-white p-2 shadow-lg">
-                                <svg class="h-4 w-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Course Content -->
-                    <div class="flex flex-1 flex-col justify-between p-4">
-                        <div>
-                            <!-- Instructor -->
-                            @if (course.Instructor?.ApplicationUser != null)
-                            {
-                                <div class="mb-1 text-sm text-gray-600">
-                                    by @course.Instructor.ApplicationUser.FirstName @course.Instructor.ApplicationUser.LastName
-                                </div>
-                            }
-
-                            <!-- Title -->
-                            <h3 class="mb-2 text-lg font-semibold text-gray-900 group-hover:text-orange-600">
-                                @course.Title
-                            </h3>
-
-                            <!-- Course Meta -->
-                            <div class="flex items-center space-x-4 text-sm text-gray-500">
-                                @if (course.Duration.HasValue)
-                                {
-                                    <span class="flex items-center">
-                                        <i class="fas fa-clock mr-1 text-orange-500"></i>
-                                        @if (course.Duration.Value.TotalHours >= 1)
-                                        {
-                                            @($"{(int)course.Duration.Value.TotalHours}h {course.Duration.Value.Minutes}m")
-                                        }
-                                        else
-                                        {
-                                            @($"{course.Duration.Value.Minutes}m")
-                                        }
-                                    </span>
-                                }
-                                @if (course.CourseLevel != null)
-                                {
-                                    <span class="flex items-center">
-                                        <i class="fas fa-signal mr-1 text-orange-500"></i>
-                                        @course.CourseLevel.Name
-                                    </span>
-                                }
-                            </div>
-                        </div>
-
-                        <!-- Progress and Actions -->
-                        <div class="mt-4">
-                            <!-- Progress Bar -->
-                            <div class="mb-3">
-                                <div class="flex items-center justify-between text-sm text-gray-600">
-                                    <span>Progress: 0%</span>
-                                    <span>0/0 lectures completed</span>
-                                </div>
-                                <div class="mt-1 h-2 w-full rounded-full bg-gray-200">
-                                    <div class="h-2 rounded-full bg-orange-500" style="width: 0%"></div>
-                                </div>
-                            </div>
-
-                            <!-- Action Buttons -->
-                            <div class="flex items-center justify-between">
-                                <a href="#" class="rounded-md bg-orange-500 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600">
-                                    Continue Learning
-                                </a>
-                                <button class="rounded-md border border-gray-300 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-50">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
+        <!-- No Results -->
+        <div id="noResults" class="hidden py-16 text-center">
+            <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
+                <i class="fas fa-search text-3xl text-gray-400"></i>
+            </div>
+            <h3 class="mb-2 text-xl font-semibold text-gray-900">No courses found</h3>
+            <p class="text-gray-600">Try adjusting your filters or search terms</p>
         </div>
     }
     else
     {
-        <!-- Empty State -->
-        <div class="flex flex-col items-center justify-center py-16">
-            <div class="mb-6">
-                <svg class="h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                </svg>
+        <!-- Empty -->
+        <div class="py-16 text-center">
+            <div class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-orange-100 to-orange-200">
+                <i class="fas fa-graduation-cap text-4xl text-orange-600"></i>
             </div>
-            <h3 class="mb-2 text-xl font-semibold text-gray-900">No courses yet</h3>
-            <p class="mb-6 text-center text-gray-600">You haven't enrolled in any courses yet. Start learning today!</p>
-            <a asp-area="User" asp-controller="Home" asp-action="Index" class="rounded-md bg-orange-500 px-6 py-3 font-medium text-white transition-colors hover:bg-orange-600">
+            <h3 class="mb-3 text-2xl font-bold text-gray-900">Start Your Learning Journey</h3>
+            <p class="mb-6 text-gray-600">You haven't enrolled in any courses yet</p>
+            <a asp-area="" asp-controller="Home" asp-action="Index" 
+               class="inline-flex items-center gap-2 rounded-lg bg-orange-600 px-6 py-3 font-medium text-white transition-colors hover:bg-orange-700">
+                <i class="fas fa-search"></i>
                 Browse Courses
             </a>
         </div>

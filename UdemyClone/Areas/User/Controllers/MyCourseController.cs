@@ -28,7 +28,18 @@ namespace UdemyClone.Areas.User.Controllers
         public IActionResult GetPartialView(string viewName)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var purchasedCourse = _unitOfWork.OrderHeader.GetAll(o => o.ApplicationUserId == userId && o.OrderStatus == OrderStatus.Completed && o.PaymentStatus == PaymentStatus.Paid && !string.IsNullOrEmpty(o.PaymentIntentId), includeProperties: "OrderDetails.Course");
+            var purchasedCourse = _unitOfWork.OrderHeader.GetAll(
+                o => o.ApplicationUserId == userId && 
+                     o.OrderStatus == OrderStatus.Completed && 
+                     o.PaymentStatus == PaymentStatus.Paid && 
+                     !string.IsNullOrEmpty(o.PaymentIntentId), 
+                includeProperties: "OrderDetails.Course.Category,OrderDetails.Course.Instructor.ApplicationUser");
+
+            var progressData = _unitOfWork.UserCourseProgress.GetAll(
+                p => p.ApplicationUserId == userId,
+                includeProperties: "Course");
+
+            ViewBag.ProgressData = progressData;
 
             return viewName switch
             {

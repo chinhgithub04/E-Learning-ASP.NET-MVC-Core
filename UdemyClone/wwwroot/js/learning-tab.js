@@ -22,12 +22,12 @@
         if (activeTab) {
             // Remove active styles from all tabs first
             tabLink.forEach(function (item) {
-                item.classList.remove('text-orange-500', 'border-orange-300');
+                item.classList.remove('text-orange-500', 'border-orange-500');
                 item.classList.add('text-gray-700', 'border-transparent');
             });
 
             // Add active styles to the current section tab
-            activeTab.classList.add('text-orange-500', 'border-orange-300');
+            activeTab.classList.add('text-orange-500', 'border-orange-500');
             activeTab.classList.remove('text-gray-700', 'border-transparent');
         }
     }
@@ -52,16 +52,21 @@
                 if (updateHistory) {
                     history.pushState({ section: section }, '', `/User/MyCourse/Index/${section}`);
                 }
+
+                // Initialize learning page functionality if it's the learning section
+                if (section === 'learning' && typeof window.initializeLearningPage === 'function') {
+                    window.initializeLearningPage();
+                }
             })
     }
 
     function changeActiveTab(clickedTab) {
         tabLink.forEach(function (item) {
-            item.classList.remove('text-orange-500', 'border-orange-300');
+            item.classList.remove('text-orange-500', 'border-orange-500');
             item.classList.add('text-gray-700', 'border-transparent');
         });
 
-        clickedTab.classList.add('text-orange-500', 'border-orange-300');
+        clickedTab.classList.add('text-orange-500', 'border-orange-500');
         clickedTab.classList.remove('text-gray-700', 'border-transparent');
     }
 });

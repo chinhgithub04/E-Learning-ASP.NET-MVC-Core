@@ -259,7 +259,7 @@
                                 }
                                 @if (isPurchased)
                                 {
-                                    <a asp-area="User" asp-controller="Course" asp-action="MyCourses" class="block w-full rounded-lg bg-green-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-green-700">
+                                    <a asp-area="User" asp-controller="Course" asp-action="Learn" asp-route-courseId="@course.Id" class="block w-full rounded-lg bg-green-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-green-700">
                                         Go to course
                                     </a>
                                 }
