@@ -6,6 +6,7 @@
     ViewData["Title"] = Model.Title;
     int numberOfLecture = 0;
     int numberOfResource = 0;
+    int numberOfStudent = 0;
     @if (Model.CourseSections.Any())
     {
         foreach (var section in Model.CourseSections)
@@ -36,6 +37,18 @@
     var purchasedCourse = _unitOfWork.OrderHeader.GetAll(o => o.ApplicationUserId == User.FindFirstValue(ClaimTypes.NameIdentifier) && o.OrderStatus == OrderStatus.Completed && o.PaymentStatus == PaymentStatus.Paid && !string.IsNullOrEmpty(o.PaymentIntentId), includeProperties: "OrderDetails");
     var hasPurchased = purchasedCourse.Any(o => o.OrderDetails.Any(od => od.CourseId == Model.Id));
     var isFree = !Model.Price.HasValue || Model.Price.Value == 0;
+    
+    var allCompletedOrders = _unitOfWork.OrderHeader.GetAll(
+        o => o.OrderStatus == OrderStatus.Completed && 
+             o.PaymentStatus == PaymentStatus.Paid && 
+             !string.IsNullOrEmpty(o.PaymentIntentId),
+        includeProperties: "OrderDetails");
+    numberOfStudent = allCompletedOrders
+        .SelectMany(o => o.OrderDetails)
+        .Where(od => od.CourseId == Model.Id)
+        .Select(od => od.OrderHeader.ApplicationUserId)
+        .Distinct()
+        .Count();
 
     DateTime? purchaseDate = null;
     if (hasPurchased)
@@ -79,6 +92,16 @@
                                 {
                                     @($"{(int)Model.Duration.Value.Minutes} minutes")
                                 }
+                            </span>
+                        </div>
+                    }
+
+                    @if (numberOfStudent > 0)
+                    {
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                            <span class="text-gray-400">
+                                @numberOfStudent student@(numberOfStudent != 1 ? "s" : "")
                             </span>
                         </div>
                     }
@@ -251,6 +274,7 @@
                         </li>
                     </ul>
                 </div>
+                </div>
             </div>
         </div>
     </div>
@@ -275,6 +299,7 @@
     </script>
     <script src="~/js/course-tab.js"></script>
     <script src="~/js/course-curriculum.js"></script>
+    <script src="~/js/course-reviews.js"></script>
     <script src="~/js/add-to-cart.js"></script>
     <script src="~/js/checkout.js"></script>
 }

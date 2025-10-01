@@ -29,7 +29,13 @@
                 contentArea.innerHTML = html;
 
                 if (tabName === 'Curriculum') {
-                    initializeCurriculumnFunction();
+                    if (typeof window.initializeCurriculumnFunction === 'function') {
+                        window.initializeCurriculumnFunction();
+                    }
+                } else if (tabName === 'Review') {
+                    if (typeof window.initializeReviewFilters === 'function') {
+                        window.initializeReviewFilters();
+                    }
                 }
             })
             .catch(error => {

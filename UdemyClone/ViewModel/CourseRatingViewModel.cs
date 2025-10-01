@@ -24,7 +24,6 @@ namespace UdemyClone.ViewModel
         [Display(Name = "Your Review (Optional)")]
         public string? Review { get; set; }
         
-        // For displaying existing ratings
         public string UserName { get; set; }
         public string UserAvatarUrl { get; set; }
         public DateTime? CreatedAt { get; set; }

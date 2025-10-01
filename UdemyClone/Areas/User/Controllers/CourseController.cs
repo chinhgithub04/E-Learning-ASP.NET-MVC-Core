@@ -314,7 +314,16 @@ namespace UdemyClone.Areas.User.Controllers
 
         public IActionResult Review(string id)
         {
-            return PartialView("_Review");
+            var course = _unitOfWork.Course.Get(
+                c => c.Id == id, 
+                includeProperties: "CourseRatings,CourseRatings.User");
+            
+            if (course == null)
+            {
+                return NotFound();
+            }
+            
+            return PartialView("_Review", course);
         }
 
         [HttpGet]

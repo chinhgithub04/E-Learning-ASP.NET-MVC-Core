@@ -26,7 +26,7 @@ namespace UdemyClone.Areas.User.Controllers
             CategoryCourseViewModel categoryCourseViewModel = new CategoryCourseViewModel
             {
                 Category = _unitOfWork.Category.GetAll(),
-                Course = _unitOfWork.Course.GetAll(c => c.Status == CourseStatus.Published , includeProperties: "Subcategory,Instructor,Instructor.ApplicationUser,CourseLevel,CourseOutcomes")
+                Course = _unitOfWork.Course.GetAll(c => c.Status == CourseStatus.Published , includeProperties: "Subcategory,Instructor,Instructor.ApplicationUser,CourseLevel,CourseOutcomes,CourseRatings")
             };
             return View(categoryCourseViewModel);
         }

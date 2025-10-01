@@ -62,5 +62,7 @@ namespace UdemyClone.Models
         public ICollection<CourseOutcome> CourseOutcomes { get; set; }
         [ValidateNever]
         public ICollection<CourseRequirement> CourseRequirements { get; set; }
+        [ValidateNever]
+        public ICollection<CourseRating> CourseRatings { get; set; }
     }
 }

@@ -12,7 +12,6 @@ namespace UdemyClone.ViewModel
         public double AverageRating { get; set; }
         public int TotalRatings { get; set; }
         
-        // Rating distribution (1-5 stars)
         public Dictionary<int, int> RatingDistribution { get; set; } = new Dictionary<int, int>
         {
             { 5, 0 },
@@ -22,7 +21,6 @@ namespace UdemyClone.ViewModel
             { 1, 0 }
         };
         
-        // Percentage distribution for display
         public Dictionary<int, double> RatingPercentages
         {
             get
@@ -42,7 +40,6 @@ namespace UdemyClone.ViewModel
             }
         }
         
-        // List of recent ratings for display
         public List<CourseRatingViewModel> RecentRatings { get; set; } = new List<CourseRatingViewModel>();
     }
 }
