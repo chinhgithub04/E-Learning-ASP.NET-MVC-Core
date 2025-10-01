@@ -70,7 +70,6 @@ namespace UdemyClone.Areas.User.Controllers
 
                 var hasAccess = purchasedCourses.Any(o => o.OrderDetails.Any(od => od.CourseId == courseId));
 
-                // Get the course with all videos
                 var course = _unitOfWork.Course.Get(
                     c => c.Id == courseId,
                     includeProperties: "CourseSections,CourseSections.CourseVideos,CourseSections.CourseVideos.CourseResources,Instructor,Instructor.ApplicationUser");
@@ -80,7 +79,6 @@ namespace UdemyClone.Areas.User.Controllers
                     return NotFound();
                 }
 
-                // Check if course is free
                 var isFree = !course.Price.HasValue || course.Price.Value == 0;
 
                 if (!hasAccess && !isFree)
@@ -89,7 +87,6 @@ namespace UdemyClone.Areas.User.Controllers
                     return RedirectToAction("Index", new { id = courseId });
                 }
 
-                // Get all videos in order
                 var allVideos = course.CourseSections
                     .OrderBy(s => s.DisplayOrder)
                     .SelectMany(s => s.CourseVideos.OrderBy(v => v.DisplayOrder))
@@ -102,10 +99,8 @@ namespace UdemyClone.Areas.User.Controllers
                     return RedirectToAction("Index", new { id = courseId });
                 }
 
-                // Get or create course progress
                 var courseProgress = await _progressService.GetOrCreateCourseProgressAsync(userId, courseId);
 
-                // Determine current video
                 CourseVideo currentVideo;
                 if (!string.IsNullOrEmpty(lectureId))
                 {
@@ -116,7 +111,6 @@ namespace UdemyClone.Areas.User.Controllers
                     }
                     else
                     {
-                        // Update the current video ID when a specific lecture is requested
                         courseProgress.CurrentVideoId = currentVideo.Id;
                         _unitOfWork.UserCourseProgress.Update(courseProgress);
                         await _unitOfWork.SaveAsync();
@@ -148,6 +142,9 @@ namespace UdemyClone.Areas.User.Controllers
 
                 var currentVideoProgress = await _progressService.GetOrCreateVideoProgressAsync(userId, currentVideo.Id);
 
+                // Get user's rating for this course
+                var userRating = await _unitOfWork.CourseRating.GetUserRatingForCourseAsync(userId, courseId);
+
                 var viewModel = new LearnViewModel
                 {
                     Course = course,
@@ -161,7 +158,8 @@ namespace UdemyClone.Areas.User.Controllers
                     CourseProgress = courseProgress,
                     CurrentVideoProgress = currentVideoProgress,
                     VideoProgresses = videoProgresses,
-                    OverallProgress = courseProgress.ProgressPercentage
+                    OverallProgress = courseProgress.ProgressPercentage,
+                    UserRating = userRating
                 };
 
                 return View(viewModel);
@@ -225,7 +223,6 @@ namespace UdemyClone.Areas.User.Controllers
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                // Get the resource with course information
                 var resource = _unitOfWork.CourseResource.Get(
                     r => r.Id == id,
                     includeProperties: "CourseVideo,CourseVideo.CourseSection,CourseVideo.CourseSection.Course");
@@ -237,7 +234,6 @@ namespace UdemyClone.Areas.User.Controllers
 
                 var course = resource.CourseVideo.CourseSection.Course;
 
-                // Check if user has access to this course
                 var purchasedCourses = _unitOfWork.OrderHeader.GetAll(
                     o => o.ApplicationUserId == userId &&
                          o.OrderStatus == OrderStatus.Completed &&
@@ -247,7 +243,6 @@ namespace UdemyClone.Areas.User.Controllers
 
                 var hasAccess = purchasedCourses.Any(o => o.OrderDetails.Any(od => od.CourseId == course.Id));
 
-                // Check if course is free
                 var isFree = !course.Price.HasValue || course.Price.Value == 0;
 
                 if (!hasAccess && !isFree)
@@ -255,7 +250,6 @@ namespace UdemyClone.Areas.User.Controllers
                     return Forbid("You don't have access to this course.");
                 }
 
-                // Get the physical file path
                 var filePath = Path.Combine(_webHostEnvironment.WebRootPath, resource.ResourceUrl.TrimStart('/'));
 
                 if (!System.IO.File.Exists(filePath))
@@ -263,10 +257,8 @@ namespace UdemyClone.Areas.User.Controllers
                     return NotFound("File not found on server.");
                 }
 
-                // Get MIME type
                 var mimeType = GetMimeType(resource.ResourceName);
 
-                // Return the file for download
                 var fileBytes = System.IO.File.ReadAllBytes(filePath);
                 return File(fileBytes, mimeType, resource.ResourceName);
             }
@@ -323,6 +315,122 @@ namespace UdemyClone.Areas.User.Controllers
         public IActionResult Review(string id)
         {
             return PartialView("_Review");
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetUserRating(string courseId)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var rating = await _unitOfWork.CourseRating.GetUserRatingForCourseAsync(userId, courseId);
+
+                if (rating == null)
+                {
+                    return Json(new { success = false, message = "No rating found" });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    rating = new
+                    {
+                        id = rating.Id,
+                        rating = rating.Rating,
+                        review = rating.Review,
+                        createdAt = rating.CreatedAt,
+                        updatedAt = rating.UpdatedAt
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> SubmitRating([FromBody] CourseRatingViewModel model)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // Check if user already has a rating for this course
+                var existingRating = await _unitOfWork.CourseRating.GetUserRatingForCourseAsync(userId, model.CourseId);
+                if (existingRating != null)
+                {
+                    return Json(new { success = false, message = "You have already rated this course. Please use edit instead." });
+                }
+
+                // Verify user has access to the course
+                var purchasedCourses = _unitOfWork.OrderHeader.GetAll(
+                    o => o.ApplicationUserId == userId &&
+                         o.OrderStatus == OrderStatus.Completed &&
+                         o.PaymentStatus == PaymentStatus.Paid &&
+                         !string.IsNullOrEmpty(o.PaymentIntentId),
+                    includeProperties: "OrderDetails");
+
+                var hasAccess = purchasedCourses.Any(o => o.OrderDetails.Any(od => od.CourseId == model.CourseId));
+
+                var course = _unitOfWork.Course.Get(c => c.Id == model.CourseId);
+                var isFree = !course.Price.HasValue || course.Price.Value == 0;
+
+                if (!hasAccess && !isFree)
+                {
+                    return Json(new { success = false, message = "You don't have access to this course." });
+                }
+
+                var rating = new CourseRating
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    CourseId = model.CourseId,
+                    UserId = userId,
+                    Rating = model.Rating,
+                    Review = model.Review,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _unitOfWork.CourseRating.Add(rating);
+                await _unitOfWork.SaveAsync();
+
+                return Json(new { success = true, message = "Rating submitted successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while submitting your rating." });
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> UpdateRating([FromBody] CourseRatingViewModel model)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var existingRating = await _unitOfWork.CourseRating.GetUserRatingForCourseAsync(userId, model.CourseId);
+                if (existingRating == null)
+                {
+                    return Json(new { success = false, message = "No existing rating found." });
+                }
+
+                existingRating.Rating = model.Rating;
+                existingRating.Review = model.Review;
+                existingRating.UpdatedAt = DateTime.UtcNow;
+
+                _unitOfWork.CourseRating.Update(existingRating);
+                await _unitOfWork.SaveAsync();
+
+                return Json(new { success = true, message = "Rating updated successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while updating your rating." });
+            }
         }
     }
 }

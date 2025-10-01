@@ -93,7 +93,6 @@ namespace UdemyClone.Services.Progress
 
             _unitOfWork.UserVideoProgress.Update(videoProgress);
 
-            // Update the last watched video on the main course progress record
             var courseProgress = await GetOrCreateCourseProgressAsync(userId, video.CourseSection.CourseId);
             courseProgress.CurrentVideoId = videoId;
             _unitOfWork.UserCourseProgress.Update(courseProgress);
@@ -112,7 +111,6 @@ namespace UdemyClone.Services.Progress
                 _unitOfWork.UserVideoProgress.Update(videoProgress);
                 await _unitOfWork.SaveAsync();
 
-                // Recalculate and save the overall course progress
                 await CalculateCourseProgressAsync(userId, video.CourseSection.CourseId);
             }
         }

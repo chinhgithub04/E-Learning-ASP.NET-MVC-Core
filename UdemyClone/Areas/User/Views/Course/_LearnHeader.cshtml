@@ -29,14 +29,114 @@
 
     <!-- Right Section -->
     <div class="flex items-center space-x-3">
-        <button class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-gray-700" title="Menu" aria-label="Menu">
-            <i class="fa-solid fa-ellipsis-vertical text-gray-300"></i>
-        </button>
-        @* <button class="flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-gray-700" title="Notes" aria-label="Notes">
-            <i class="fas fa-sticky-note text-gray-300"></i>
-        </button> *@
+        <!-- Rating Button -->
+        @if (Model.UserRating == null)
+        {
+            <button id="leaveRatingBtn" 
+                    class="flex cursor-pointer items-center space-x-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600"
+                    title="Leave a rating" 
+                    aria-label="Leave a rating">
+                <i class="fas fa-star"></i>
+                <span>Leave a rating</span>
+            </button>
+        }
+        
+        <!-- Menu Dropdown -->
+        <div class="relative">
+            <button id="menuButton" 
+                    class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-gray-700" 
+                    title="Menu" 
+                    aria-label="Menu">
+                <i class="fa-solid fa-ellipsis-vertical text-gray-300"></i>
+            </button>
+            
+            <!-- Dropdown Menu -->
+            <div id="menuDropdown" 
+                 class="absolute top-12 right-0 z-50 hidden w-68 rounded-lg border border-gray-600 bg-gray-800 shadow-lg">
+                <ul class="py-2 text-sm">
+                    @if (Model.UserRating != null)
+                    {
+                        <li>
+                            <button id="editRatingBtn" 
+                                    class="flex w-full cursor-pointer items-center space-x-3 px-4 py-2 text-left text-gray-300 transition-colors hover:bg-gray-700 hover:text-white">
+                                <i class="fas fa-star text-orange-500"></i>
+                                <span>Edit your rating</span>
+                            </button>
+                        </li>
+                        <li class="border-t border-gray-700"></li>
+                    }
+                    <li>
+                        <button class="flex w-full cursor-pointer items-center space-x-3 px-4 py-2 text-left text-gray-300 transition-colors hover:bg-gray-700 hover:text-white" disabled>
+                            <i class="fas fa-heart"></i>
+                            <span>Favorite this course</span>
+                            <span class="ml-auto text-xs text-gray-500">(Coming soon)</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="flex w-full cursor-pointer items-center space-x-3 px-4 py-2 text-left text-gray-300 transition-colors hover:bg-gray-700 hover:text-white" disabled>
+                            <i class="fas fa-archive"></i>
+                            <span>Archive this course</span>
+                            <span class="ml-auto text-xs text-gray-500">(Coming soon)</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
         <button class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-gray-700" title="Share" aria-label="Share">
             <i class="fas fa-share text-gray-300"></i>
         </button>
+    </div>
+</div>
+
+<!-- Rating Modal -->
+<div id="ratingModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/30 backdrop-blur-sm">
+    <div class="w-full max-w-lg rounded-lg bg-gray-800 p-6 shadow-xl">
+        <div class="mb-4 flex items-center justify-between">
+            <h3 class="text-xl font-semibold text-white">Rate this course</h3>
+            <button id="closeModalBtn" class="cursor-pointer text-gray-400 transition-colors hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="mb-6">
+            <p class="mb-4 text-sm text-gray-300">How would you rate this course?</p>
+            
+            <!-- Star Rating -->
+            <div class="mb-6 flex items-center justify-center space-x-2">
+                <div id="starRating" class="flex space-x-1">
+                    <i class="fas fa-star cursor-pointer text-4xl text-gray-600 transition-colors hover:text-orange-500" data-rating="1"></i>
+                    <i class="fas fa-star cursor-pointer text-4xl text-gray-600 transition-colors hover:text-orange-500" data-rating="2"></i>
+                    <i class="fas fa-star cursor-pointer text-4xl text-gray-600 transition-colors hover:text-orange-500" data-rating="3"></i>
+                    <i class="fas fa-star cursor-pointer text-4xl text-gray-600 transition-colors hover:text-orange-500" data-rating="4"></i>
+                    <i class="fas fa-star cursor-pointer text-4xl text-gray-600 transition-colors hover:text-orange-500" data-rating="5"></i>
+                </div>
+            </div>
+            
+            <!-- Review Text -->
+            <div class="mb-4">
+                <label for="reviewText" class="mb-2 block text-sm font-medium text-gray-300">Your Review (Optional)</label>
+                <textarea id="reviewText" 
+                          rows="4" 
+                          maxlength="1000"
+                          class="placeholder-gray-400 w-full rounded-lg border border-gray-600 bg-gray-700 px-3 py-2 text-white focus:border-orange-500 focus:outline-none"
+                          placeholder="Share your thoughts about this course..."></textarea>
+                <div class="mt-1 text-right text-xs text-gray-400">
+                    <span id="charCount">0</span>/1000
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <button id="cancelRatingBtn" 
+                    class="cursor-pointer rounded-lg border border-gray-600 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700">
+                Cancel
+            </button>
+            <button id="submitRatingBtn" 
+                    class="cursor-pointer rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled>
+                Submit Rating
+            </button>
+        </div>
     </div>
 </div>

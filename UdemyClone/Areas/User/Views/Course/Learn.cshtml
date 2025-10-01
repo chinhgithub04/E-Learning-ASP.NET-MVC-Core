@@ -13,28 +13,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body class="overflow-hidden bg-gray-900 text-white">
-    <div class="flex h-screen">
-        <!-- Main Content Area -->
-        <div class="flex flex-1 flex-col transition-all duration-300" id="mainContent">
-            <!-- Top Navigation Bar -->
-            <div class="flex-shrink-0">
-                @await Html.PartialAsync("_LearnHeader", Model)
-            </div>
-
-            <!-- Video Player Section -->
-            <div class="flex min-h-0 flex-1 items-center justify-center bg-black">
-                @await Html.PartialAsync("_VideoPlayer", Model)
-            </div>
-
-            <!-- Bottom Controls -->
-            <div class="z-10 flex-shrink-0">
-                @await Html.PartialAsync("_VideoControls", Model)
-            </div>
+    <div class="flex h-screen flex-col">
+        <!-- Top Navigation Bar - Full Width -->
+        <div class="flex-shrink-0">
+            @await Html.PartialAsync("_LearnHeader", Model)
         </div>
 
-        <!-- Sidebar -->
-        <div class="flex w-96 flex-col border-l border-gray-700 bg-gray-800 transition-transform duration-300" id="courseSidebar">
-            @await Html.PartialAsync("_CourseSidebar", Model)
+        <!-- Main Content Area with Sidebar -->
+        <div class="flex min-h-0 flex-1">
+            <!-- Main Content Area -->
+            <div class="flex flex-1 flex-col transition-all duration-300" id="mainContent">
+                <!-- Video Player Section -->
+                <div class="flex min-h-0 flex-1 items-center justify-center bg-black">
+                    @await Html.PartialAsync("_VideoPlayer", Model)
+                </div>
+
+                <!-- Bottom Controls -->
+                <div class="z-10 flex-shrink-0">
+                    @await Html.PartialAsync("_VideoControls", Model)
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="flex w-96 flex-col border-l border-gray-700 bg-gray-800 transition-transform duration-300" id="courseSidebar">
+                @await Html.PartialAsync("_CourseSidebar", Model)
+            </div>
         </div>
     </div>
 
@@ -48,6 +51,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/learn.js" asp-append-version="true"></script>
+    <script src="~/js/learn-header.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>

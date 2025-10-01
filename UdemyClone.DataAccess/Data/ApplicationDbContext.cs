@@ -25,5 +25,6 @@ namespace UdemyClone.DataAccess.Data
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<UserCourseProgress> UserCourseProgresses { get; set; }
         public DbSet<UserVideoProgress> UserVideoProgresses { get; set; }
+        public DbSet<CourseRating> CourseRatings { get; set; }
     }
 }

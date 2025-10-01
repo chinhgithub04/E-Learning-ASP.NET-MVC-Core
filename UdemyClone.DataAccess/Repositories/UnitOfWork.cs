@@ -33,6 +33,7 @@ namespace UdemyClone.DataAccess.Repositories
         public IApplicationUserRepository ApplicationUser { get; private set; }
         public IUserCourseProgressRepository UserCourseProgress { get; private set; }
         public IUserVideoProgressRepository UserVideoProgress { get; private set; }
+        public ICourseRatingRepository CourseRating { get; private set; }
 
         private readonly ApplicationDbContext _db;
         public UnitOfWork(ApplicationDbContext db)
@@ -54,6 +55,7 @@ namespace UdemyClone.DataAccess.Repositories
             ApplicationUser = new ApplicationUserRepository(_db);
             UserCourseProgress = new UserCourseProgressRepository(_db);
             UserVideoProgress = new UserVideoProgressRepository(_db);
+            CourseRating = new CourseRatingRepository(_db);
         }
         public void Save()
         {

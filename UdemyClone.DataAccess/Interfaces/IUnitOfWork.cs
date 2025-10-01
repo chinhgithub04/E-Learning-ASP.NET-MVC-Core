@@ -24,6 +24,7 @@ namespace UdemyClone.DataAccess.Interfaces
         IApplicationUserRepository ApplicationUser { get; }
         IUserCourseProgressRepository UserCourseProgress { get; }
         IUserVideoProgressRepository UserVideoProgress { get; }
+        ICourseRatingRepository CourseRating { get; }
         void Save();
         Task SaveAsync();
     }

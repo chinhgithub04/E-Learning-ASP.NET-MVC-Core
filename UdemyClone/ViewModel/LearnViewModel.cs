@@ -17,5 +17,6 @@ namespace UdemyClone.ViewModel
         public UserVideoProgress? CurrentVideoProgress { get; set; }
         public List<UserVideoProgress> VideoProgresses { get; set; } = new List<UserVideoProgress>();
         public decimal OverallProgress { get; set; }
+        public CourseRating? UserRating { get; set; }
     }
 }

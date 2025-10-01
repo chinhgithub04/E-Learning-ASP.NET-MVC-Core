@@ -93,7 +93,6 @@
             });
         });
 
-        // Expand section containing current video by default
         const sectionContents = document.querySelectorAll('.section-content');
         sectionContents.forEach(content => {
             const hasCurrentVideo = content.querySelector('.border-orange-500');
@@ -121,14 +120,12 @@
                 const isHidden = sidebar.style.transform === 'translateX(100%)';
 
                 if (isHidden) {
-                    // Show sidebar
                     sidebar.style.transform = 'translateX(0)';
-                    sidebar.style.width = '24rem'; // w-96 = 24rem
+                    sidebar.style.width = '24rem';
                     this.querySelector('i').className = 'fas fa-chevron-left';
-                    this.style.right = '24rem'; // w-96 = 24rem
+                    this.style.right = '24rem';
                     this.title = 'Hide Sidebar';
                 } else {
-                    // Hide sidebar
                     sidebar.style.transform = 'translateX(100%)';
                     sidebar.style.width = '0';
                     this.querySelector('i').className = 'fas fa-chevron-right';
@@ -139,28 +136,21 @@
         }
     }
 
-    // Function to expand section containing a specific video
     function expandSectionForVideo(videoId) {
-        // Find the video item
         const videoItem = document.querySelector(`div[data-video-id="${videoId}"]`);
         if (!videoItem) return;
 
-        // Find the section containing this video
         const sectionContent = videoItem.closest('.section-content');
         if (!sectionContent) return;
 
-        // Get the section header
         const sectionHeader = sectionContent.previousElementSibling;
         if (!sectionHeader || !sectionHeader.classList.contains('section-header')) return;
 
-        // Get the chevron icon
         const chevron = sectionHeader.querySelector('.section-chevron');
 
-        // Check if section is currently collapsed
         const isCollapsed = sectionContent.style.display === 'none' || !sectionContent.style.display;
 
         if (isCollapsed) {
-            // Expand the section
             toggleSlide(sectionContent, 200);
             if (chevron) {
                 chevron.classList.add('rotate-180');
@@ -168,16 +158,13 @@
         }
     }
 
-    // Global function to load video without page refresh
     window.loadVideo = function (videoId) {
         fetch(`/User/Course/Learn?courseId=${video.getAttribute('data-course-id')}&lectureId=${videoId}`)
             .then(response => response.text())
             .then(html => {
-                // Parse the response to get the new video data
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
 
-                // Update video source
                 const newVideoElement = doc.getElementById('courseVideo');
                 if (newVideoElement) {
                     const newVideoUrl = newVideoElement.querySelector('source')?.getAttribute('src');
@@ -188,33 +175,25 @@
                     }
                 }
 
-                // Update current video highlighting
                 document.querySelectorAll('.video-item').forEach(item => {
                     item.classList.remove('border-orange-500', 'bg-gray-700');
                     item.classList.add('border-transparent');
                 });
 
-                // Highlight new current video
                 const newCurrentItem = document.querySelector(`div[data-video-id="${videoId}"]`);
                 if (newCurrentItem) {
                     newCurrentItem.classList.add('border-orange-500', 'bg-gray-700');
                     newCurrentItem.classList.remove('border-transparent');
                 }
 
-                // Expand section containing the new video and optionally collapse others
                 expandSectionForVideo(videoId);
 
-                // Optional: Uncomment the line below if you want to collapse all other sections
-                // collapseOtherSections(videoId);
 
-                // Update Previous/Next buttons
                 updateNavigationButtons(doc);
 
-                // Update URL without page refresh
                 const newUrl = `/User/Course/Learn?courseId=${video.getAttribute('data-course-id')}&lectureId=${videoId}`;
                 window.history.pushState({ videoId: videoId }, '', newUrl);
 
-                // Scroll the new current video into view
                 if (newCurrentItem) {
                     newCurrentItem.scrollIntoView({
                         behavior: 'smooth',
@@ -231,15 +210,12 @@
     };
 
     function updateNavigationButtons(doc) {
-        // Get the new video controls from the parsed response
         const newVideoControls = doc.querySelector('#video-controls');
         const currentVideoControls = document.getElementById('video-controls');
 
         if (newVideoControls && currentVideoControls) {
-            // Replace the entire video controls section
             currentVideoControls.innerHTML = newVideoControls.innerHTML;
         } else {
-            // Fallback: Update individual buttons
             updatePreviousButton(doc);
             updateNextButton(doc);
         }
@@ -250,12 +226,11 @@
         const currentPreviousBtn = document.getElementById('previous-btn');
 
         if (newPreviousBtn && currentPreviousBtn) {
-            // Copy all attributes and content
+
             currentPreviousBtn.innerHTML = newPreviousBtn.innerHTML;
             currentPreviousBtn.className = newPreviousBtn.className;
             currentPreviousBtn.disabled = newPreviousBtn.disabled;
 
-            // Copy onclick attribute if it exists
             const onclickAttr = newPreviousBtn.getAttribute('onclick');
             if (onclickAttr) {
                 currentPreviousBtn.setAttribute('onclick', onclickAttr);
@@ -272,12 +247,11 @@
         const currentNextBtn = document.getElementById('next-btn');
 
         if (newNextBtn && currentNextBtn) {
-            // Copy all attributes and content
+
             currentNextBtn.innerHTML = newNextBtn.innerHTML;
             currentNextBtn.className = newNextBtn.className;
             currentNextBtn.disabled = newNextBtn.disabled;
 
-            // Copy onclick attribute if it exists
             const onclickAttr = newNextBtn.getAttribute('onclick');
             if (onclickAttr) {
                 currentNextBtn.setAttribute('onclick', onclickAttr);
@@ -289,7 +263,6 @@
         }
     }
 
-    // Global function to toggle video completion
     window.toggleVideoCompletion = function (videoId, checkbox) {
         const isCompleted = checkbox.checked;
         ToggleVideoCompletion(videoId, isCompleted);
@@ -307,16 +280,13 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update checkbox state
                     const checkbox = document.querySelector(`input[data-video-id="${videoId}"]`);
                     if (checkbox) {
                         checkbox.checked = isCompleted;
                     }
 
-                    // Update progress in header
                     updateProgressDisplay(data.progress, data.completedVideos);
 
-                    // Update section completion counts
                     updateSectionCompletionCounts();
 
                 } else {
@@ -329,7 +299,6 @@
             .catch(error => {
                 showError('Failed to update video completion status');
                 console.error('Error:', error);
-                // Revert checkbox if failed
                 const checkbox = document.querySelector(`input[data-video-id="${videoId}"]`);
                 if (checkbox) {
                     checkbox.checked = !isCompleted;
@@ -338,7 +307,6 @@
     }
 
     function updateSectionCompletionCounts() {
-        // Update section completion counts
         document.querySelectorAll('.section-header').forEach(header => {
             const sectionContent = header.nextElementSibling;
             if (sectionContent) {
@@ -357,13 +325,11 @@
     }
 
     function updateProgressDisplay(newProgress, completedVideos) {
-        // Update header progress bar
         const headerProgressBar = document.querySelector('.progress-bar');
         if (headerProgressBar) {
             headerProgressBar.style.width = newProgress + '%';
         }
 
-        // Update header progress text
         const headerProgressText = document.querySelector('.progress-text');
         if (headerProgressText) {
             headerProgressText.textContent = completedVideos;
@@ -372,11 +338,10 @@
 
     function setupKeyboardShortcuts() {
         document.addEventListener('keydown', function (e) {
-            // Ignore if user is typing in an input
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
             switch (e.which || e.keyCode) {
-                case 32: // Spacebar - play/pause
+                case 32:
                     e.preventDefault();
                     if (video) {
                         if (video.paused) {
@@ -387,21 +352,21 @@
                     }
                     break;
 
-                case 37: // Left arrow - seek backward 10s
+                case 37:
                     e.preventDefault();
                     if (video) {
                         video.currentTime = Math.max(0, video.currentTime - 10);
                     }
                     break;
 
-                case 39: // Right arrow - seek forward 10s
+                case 39:
                     e.preventDefault();
                     if (video) {
                         video.currentTime = Math.min(video.duration, video.currentTime + 10);
                     }
                     break;
 
-                case 70: // F - fullscreen
+                case 70:
                     e.preventDefault();
                     if (video) {
                         if (video.requestFullscreen) {
@@ -435,37 +400,30 @@
         });
     }
 
-    // Helper function to get anti-forgery token
     function getAntiForgeryToken() {
         const token = document.querySelector('input[name="__RequestVerificationToken"]');
         return token ? token.value : '';
     }
 
-    // Helper function for slide toggle animation
     function toggleSlide(element, duration = 300) {
         if (element.style.display === 'none' || !element.style.display) {
-            // Show element
             element.style.display = 'block';
             element.style.height = '0px';
             element.style.overflow = 'hidden';
             element.style.transition = `height ${duration}ms ease`;
 
-            // Get the full height
             const height = element.scrollHeight + 'px';
 
-            // Animate to full height
             requestAnimationFrame(() => {
                 element.style.height = height;
             });
 
-            // Clean up after animation
             setTimeout(() => {
                 element.style.height = '';
                 element.style.overflow = '';
                 element.style.transition = '';
             }, duration);
         } else {
-            // Hide element
             element.style.height = element.scrollHeight + 'px';
             element.style.overflow = 'hidden';
             element.style.transition = `height ${duration}ms ease`;
@@ -474,7 +432,6 @@
                 element.style.height = '0px';
             });
 
-            // Hide after animation
             setTimeout(() => {
                 element.style.display = 'none';
                 element.style.height = '';
@@ -488,12 +445,10 @@
         const dropdown = button.nextElementSibling;
         const chevron = button.querySelector('.fa-chevron-down');
 
-        // Close all other dropdowns first
         document.querySelectorAll('.resources-dropdown').forEach(otherDropdown => {
             if (otherDropdown !== dropdown) {
                 otherDropdown.classList.add('hidden');
 
-                // Reset other chevrons
                 const otherToggle = otherDropdown.previousElementSibling;
                 if (otherToggle) {
                     const otherChevron = otherToggle.querySelector('.fa-chevron-down');
@@ -504,7 +459,6 @@
             }
         });
 
-        // Toggle current dropdown
         if (dropdown.classList.contains('hidden')) {
             dropdown.classList.remove('hidden');
             if (chevron) {
@@ -519,14 +473,12 @@
     };
 
 
-    // Handle browser back/forward buttons
     window.addEventListener('popstate', function (event) {
         if (event.state && event.state.videoId) {
             loadVideo(event.state.videoId);
         }
     });
 
-    // Clean up intervals when page unloads
     window.addEventListener('beforeunload', function () {
         if (progressUpdateInterval) {
             clearInterval(progressUpdateInterval);
