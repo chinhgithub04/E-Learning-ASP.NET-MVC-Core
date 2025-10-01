@@ -78,7 +78,13 @@
                                         <div class="flex items-center space-x-3">
                                             @if (video.IsPreview)
                                             {
-                                                <button class="cursor-pointer rounded bg-blue-500 px-2 py-1 text-sm font-medium text-white hover:bg-blue-600">Preview</button>
+                                                <button class="preview-btn cursor-pointer rounded bg-blue-500 px-2 py-1 text-sm font-medium text-white hover:bg-blue-600"
+                                                        data-video-id="@video.Id"
+                                                        data-video-title="@video.Title"
+                                                        data-video-url="@video.VideoUrl"
+                                                        data-section-title="@s.Title">
+                                                    Preview
+                                                </button>
                                             }
                                             @if (video.Duration.HasValue)
                                             {
@@ -103,4 +109,41 @@
             }
         </div>
     }
+</div>
+
+<!-- Preview Video Modal -->
+<div id="previewModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div class="relative mx-4 w-full max-w-5xl rounded-lg bg-white shadow-2xl">
+        <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <div>
+                <h3 id="modalVideoTitle" class="text-xl font-semibold text-gray-900">Course Preview</h3>
+                <p id="modalSectionTitle" class="text-sm text-gray-600"></p>
+            </div>
+            <button id="closePreviewModal" class="cursor-pointer rounded-sm p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x h-5 w-5"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+            </button>
+        </div>
+
+        <div class="flex">
+            <div class="flex-1 bg-black">
+                <video id="previewVideoPlayer" 
+                       class="h-full w-full" 
+                       controls 
+                       controlsList="nodownload"
+                       style="max-height: 500px;">
+                    <source id="previewVideoSource" src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+            <div class="w-80 border-l border-gray-200 bg-gray-50">
+                <div class="border-b border-gray-200 px-4 py-3">
+                    <h4 class="font-semibold text-gray-900">Preview Lectures</h4>
+                    <p class="text-xs text-gray-600" id="previewCount"></p>
+                </div>
+                <div id="previewLecturesList" class="max-h-[500px] overflow-y-auto">
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
