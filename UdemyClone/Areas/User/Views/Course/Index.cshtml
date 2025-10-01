@@ -33,7 +33,16 @@
 
     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     var isInCart = userId != null && _unitOfWork.Cart.Get(c => c.ApplicationUserId == userId && c.CourseId == Model.Id) != null;
+    var purchasedCourse = _unitOfWork.OrderHeader.GetAll(o => o.ApplicationUserId == User.FindFirstValue(ClaimTypes.NameIdentifier) && o.OrderStatus == OrderStatus.Completed && o.PaymentStatus == PaymentStatus.Paid && !string.IsNullOrEmpty(o.PaymentIntentId), includeProperties: "OrderDetails");
+    var hasPurchased = purchasedCourse.Any(o => o.OrderDetails.Any(od => od.CourseId == Model.Id));
+    var isFree = !Model.Price.HasValue || Model.Price.Value == 0;
 
+    DateTime? purchaseDate = null;
+    if (hasPurchased)
+    {
+        var purchaseOrder = purchasedCourse.FirstOrDefault(o => o.OrderDetails.Any(od => od.CourseId == Model.Id));
+        purchaseDate = purchaseOrder?.OrderDate;
+    }
 }
 
 <div class="bg-white pb-10">
@@ -119,25 +128,61 @@
                 }
 
                 <div class="px-6 py-4">
-                    <div class="mb-2 text-3xl font-bold">
-                        @if (Model.Price.HasValue && Model.Price > 0)
-                        {
-                            <span class="text-red-500">@Model.Price.Value.ToString("C")</span>
-                        }
-                        else
-                        {
-                            <span class="text-green-600">Free</span>
-                        }
-                    </div>
-                    <div class="action-btn-container mb-2 flex items-center justify-between space-x-3">
-                        @if (isInCart)
-                        {
+                    @if (!hasPurchased)
+                    {
+                        <div class="mb-2 text-3xl font-bold">
+                            @if (Model.Price.HasValue && Model.Price > 0)
+                            {
+                                <span class="text-red-500">@Model.Price.Value.ToString("C")</span>
+                            }
+                            else
+                            {
+                                <span class="text-green-600">Free</span>
+                            }
+                        </div>
+                    }
+
+                    @if (hasPurchased)
+                    {
+                        <div class="mb-4 text-sm text-green-600">
+                            @if (purchaseDate.HasValue)
+                            {
+                                <span>You purchased this course on @purchaseDate.Value.ToString("MMM dd, yyyy")</span>
+                            }
+                            else
+                            {
+                                <span>Course Purchased</span>
+                            }
+                        </div>
+                        <div class="action-btn-container mb-2">
+                            <a asp-area="User" asp-controller="Course" asp-action="Learn" asp-route-courseId="@Model.Id" class="block w-full cursor-pointer rounded-md bg-green-600 py-3 text-center font-bold text-white hover:bg-green-700">
+                                Go to Course
+                            </a>
+                        </div>
+                    }
+                    else if (isFree)
+                    {
+                        <div class="action-btn-container mb-2 flex items-center justify-between space-x-3">
+                            <a asp-area="User" asp-controller="MyCourse" asp-action="Learning" asp-route-id="@Model.Id" class="block w-full cursor-pointer rounded-md border border-orange-500 py-3 text-center font-bold text-orange-500 hover:bg-orange-100">
+                                Enroll Now
+                            </a>
+                        </div>
+                    }
+                    else if (isInCart)
+                    {
+                        <div class="action-btn-container mb-2 flex items-center justify-between space-x-3">
                             <a asp-area="User" asp-controller="Cart" asp-action="Index" class="block w-full cursor-pointer rounded-md bg-orange-500 py-3 text-center font-bold text-white hover:bg-orange-600">
                                 Go to cart
                             </a>
-                        }
-                        else
-                        {
+                            <button class="cursor-pointer rounded-md border border-orange-500 p-3 hover:bg-orange-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart text-orange-500"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" /></svg>
+                            </button>
+                        </div>
+                        <button id="checkout" class="w-full cursor-pointer rounded-md border border-orange-500 bg-white py-3 font-bold text-orange-500 hover:bg-orange-50">Buy now</button>
+                    }
+                    else
+                    {
+                        <div class="action-btn-container mb-2 flex items-center justify-between space-x-3">
                             <button class="add-to-cart w-full cursor-pointer rounded-md bg-orange-500 py-3 font-bold text-white hover:bg-orange-600"
                                     data-course-id="@Model.Id"
                                     data-course-title="@Model.Title"
@@ -146,12 +191,13 @@
                                     data-course-price="@(Model.Price.HasValue && Model.Price.Value > 0 ? $"${Model.Price.Value}" : "Free")">
                                 Add to cart
                             </button>
-                        }
-                        <button class="cursor-pointer rounded-md border border-orange-500 p-3 hover:bg-orange-50">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart text-orange-500"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" /></svg>
-                        </button>
-                    </div>
-                    <button id="checkout" class="w-full cursor-pointer rounded-md border border-orange-500 bg-white py-3 font-bold text-orange-500 hover:bg-orange-50">Buy now</button>
+                            <button class="cursor-pointer rounded-md border border-orange-500 p-3 hover:bg-orange-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart text-orange-500"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" /></svg>
+                            </button>
+                        </div>
+                        <button id="checkout" class="w-full cursor-pointer rounded-md border border-orange-500 bg-white py-3 font-bold text-orange-500 hover:bg-orange-50">Buy now</button>
+                    }
+
                     <div class="my-4 text-center text-xs text-gray-500">30-Day Money-Back Guarantee</div>
                     <div class="font-medium">This course includes:</div>
                     <ul class="my-2 space-y-2 text-sm text-gray-600">
@@ -218,13 +264,12 @@
                 <a data-tab="Review" class="flex-1 cursor-pointer rounded-tr-md border-b border-gray-200 px-4 py-4 text-center text-sm font-medium text-gray-900 hover:bg-gray-100">Reviews</a>
             </nav>
             <div id="content-area" class="bg-gray-100 p-5">
-                
             </div>
         </div>
     </div>
 </div>
 
-@section Scripts{
+@section Scripts {
     <script>
         const courseId = '@Model.Id';
     </script>

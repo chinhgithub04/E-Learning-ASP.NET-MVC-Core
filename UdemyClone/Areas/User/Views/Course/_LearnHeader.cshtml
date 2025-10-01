@@ -1,0 +1,42 @@
+﻿@model LearnViewModel
+
+<div class="flex items-center justify-between border-b border-gray-700 bg-gray-800 px-6 py-3">
+    <!-- Left Section -->
+    <div class="flex items-center space-x-4">
+        <a href="@Url.Action("Index", "Home", new { id = Model.Course.Id })"
+           class="text-orange-400 transition-colors hover:text-orange-500">
+            <img src="~/img/logo-white.svg" alt="Logo" title="EduPress" class="h-8" />
+        </a>
+        <div class="text-sm text-gray-400">|</div>
+        <a asp-controller="Course" asp-action="Index" asp-route-id="@Model.Course.Id" class="max-w-md truncate text-lg font-semibold text-white hover:text-gray-300">
+            @Model.Course.Title
+        </a>
+    </div>
+
+    <!-- Center Section - Progress -->
+    <div class="flex items-center space-x-4">
+        <div class="text-sm text-gray-300">
+            <span class="progress-text font-medium">@Model.CourseProgress?.CompletedVideos</span> of @Model.TotalVideos
+        </div>
+        <div class="h-2 w-32 rounded-full bg-gray-700">
+            <div class="progress-bar h-2 rounded-full bg-orange-500 transition-all duration-300"
+                 style="width: @(Model.OverallProgress)%"></div>
+        </div>
+        <div class="text-sm text-gray-300">
+            @Model.OverallProgress.ToString("F0")%
+        </div>
+    </div>
+
+    <!-- Right Section -->
+    <div class="flex items-center space-x-3">
+        <button class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-gray-700" title="Menu" aria-label="Menu">
+            <i class="fa-solid fa-ellipsis-vertical text-gray-300"></i>
+        </button>
+        @* <button class="flex h-10 w-10 items-center justify-center rounded-lg transition-colors hover:bg-gray-700" title="Notes" aria-label="Notes">
+            <i class="fas fa-sticky-note text-gray-300"></i>
+        </button> *@
+        <button class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-gray-700" title="Share" aria-label="Share">
+            <i class="fas fa-share text-gray-300"></i>
+        </button>
+    </div>
+</div>

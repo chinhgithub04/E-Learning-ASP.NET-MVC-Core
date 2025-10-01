@@ -19,7 +19,7 @@ namespace UdemyClone.DataAccess.Repositories
 
         public void Update(OrderHeader orderHeader)
         {
-            _db.Update(orderHeader);
+            _db.OrderHeaders.Update(orderHeader);
         }
 
         public void UpdateStatus(string orderId, string orderStatus, string? paymentStatus = null)

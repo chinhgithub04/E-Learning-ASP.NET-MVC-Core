@@ -10,4 +10,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.11" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\UdemyClone.DataAccess\UdemyClone.DataAccess.csproj" />
+    <ProjectReference Include="..\UdemyClone.Models\UdemyClone.Models.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -9,6 +9,7 @@ using UdemyClone.Services.Email;
 using FFMpegCore;
 using UdemyClone.Common.Settings;
 using Stripe;
+using UdemyClone.Services.Progress;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 var app = builder.Build();
 

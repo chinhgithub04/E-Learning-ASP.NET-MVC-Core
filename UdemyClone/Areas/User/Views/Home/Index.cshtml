@@ -5,6 +5,7 @@
 
 @{
     ViewData["Title"] = "Online Course - Learn Anything";
+    var purchasedCourse = _unitOfWork.OrderHeader.GetAll(o => o.ApplicationUserId == User.FindFirstValue(ClaimTypes.NameIdentifier) && o.OrderStatus == OrderStatus.Completed && o.PaymentStatus == PaymentStatus.Paid && !string.IsNullOrEmpty(o.PaymentIntentId), includeProperties: "OrderDetails");
 }
 
 <div class="bg-white">
@@ -254,8 +255,24 @@
                                 @{
                                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                                     var isInCart = userId != null && _unitOfWork.Cart.Get(c => c.ApplicationUserId == userId && c.CourseId == course.Id) != null;
+                                    var isPurchased = purchasedCourse.Any(pc => pc.OrderDetails.Any(od => od.CourseId == course.Id));
                                 }
-                                @if (isInCart)
+                                @if (isPurchased)
+                                {
+                                    <a asp-area="User" asp-controller="Course" asp-action="MyCourses" class="block w-full rounded-lg bg-green-600 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-green-700">
+                                        Go to course
+                                    </a>
+                                }
+                                else if (course.Price.HasValue && course.Price.Value == 0)
+                                {
+                                    <form method="post" asp-area="User" asp-controller="Cart" asp-action="AddToCart">
+                                        <input type="hidden" name="courseId" value="@course.Id" />
+                                        <button type="submit" class="w-full cursor-pointer rounded-lg bg-orange-500 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-600">
+                                            Enroll Now
+                                        </button>
+                                    </form>
+                                }
+                                else if (isInCart)
                                 {
                                     <a asp-area="User" asp-controller="Cart" asp-action="Index" class="block w-full rounded-lg bg-orange-500 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-orange-600">
                                         Go to cart

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UdemyClone.DataAccess.Data;
 
@@ -11,9 +12,11 @@ using UdemyClone.DataAccess.Data;
 namespace UdemyClone.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250929205458_AddProgressTables")]
+    partial class AddProgressTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -620,6 +623,9 @@ namespace UdemyClone.DataAccess.Migrations
                     b.Property<string>("CurrentVideoId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime?>("LastAccessedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<decimal>("ProgressPercentage")
                         .HasColumnType("decimal(5, 2)");
 
@@ -639,6 +645,10 @@ namespace UdemyClone.DataAccess.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("CourseVideoId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -650,10 +660,11 @@ namespace UdemyClone.DataAccess.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("UserCourseProgressId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
 
                     b.HasIndex("CourseVideoId");
 
@@ -895,21 +906,25 @@ namespace UdemyClone.DataAccess.Migrations
 
             modelBuilder.Entity("UdemyClone.Models.UserVideoProgress", b =>
                 {
+                    b.HasOne("UdemyClone.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("UdemyClone.Models.CourseVideo", "CourseVideo")
                         .WithMany()
                         .HasForeignKey("CourseVideoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("UdemyClone.Models.UserCourseProgress", "UserCourseProgress")
+                    b.HasOne("UdemyClone.Models.UserCourseProgress", null)
                         .WithMany("VideoProgresses")
-                        .HasForeignKey("UserCourseProgressId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserCourseProgressId");
+
+                    b.Navigation("ApplicationUser");
 
                     b.Navigation("CourseVideo");
-
-                    b.Navigation("UserCourseProgress");
                 });
 
             modelBuilder.Entity("UdemyClone.Models.ApplicationUser", b =>

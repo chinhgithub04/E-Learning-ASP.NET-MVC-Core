@@ -19,7 +19,7 @@ namespace UdemyClone.DataAccess.Repositories
 
         public void Update(Course course)
         {
-            _db.Update(course);
+            _db.Courses.Update(course);
         }
     }
 }

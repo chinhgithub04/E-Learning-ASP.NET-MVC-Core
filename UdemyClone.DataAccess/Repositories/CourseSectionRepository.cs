@@ -42,7 +42,7 @@ namespace UdemyClone.DataAccess.Repositories
                     existingEntity.CourseId = courseSection.CourseId;
                 }
 
-                _db.Update(existingEntity);
+                _db.CourseSections.Update(existingEntity);
             }
         }
     }

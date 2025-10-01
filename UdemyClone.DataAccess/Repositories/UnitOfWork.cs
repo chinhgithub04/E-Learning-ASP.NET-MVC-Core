@@ -31,6 +31,8 @@ namespace UdemyClone.DataAccess.Repositories
         public IOrderHeaderRepository OrderHeader { get; private set; }
         public IOrderDetailRepository OrderDetail { get; private set; }
         public IApplicationUserRepository ApplicationUser { get; private set; }
+        public IUserCourseProgressRepository UserCourseProgress { get; private set; }
+        public IUserVideoProgressRepository UserVideoProgress { get; private set; }
 
         private readonly ApplicationDbContext _db;
         public UnitOfWork(ApplicationDbContext db)
@@ -50,10 +52,16 @@ namespace UdemyClone.DataAccess.Repositories
             OrderHeader = new OrderHeaderRepository(_db);
             OrderDetail = new OrderDetailRepository(_db);
             ApplicationUser = new ApplicationUserRepository(_db);
+            UserCourseProgress = new UserCourseProgressRepository(_db);
+            UserVideoProgress = new UserVideoProgressRepository(_db);
         }
         public void Save()
         {
             _db.SaveChanges();
+        }
+        public async Task SaveAsync()
+        {
+            await _db.SaveChangesAsync();
         }
     }
 }

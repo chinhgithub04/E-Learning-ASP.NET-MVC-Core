@@ -22,6 +22,9 @@ namespace UdemyClone.DataAccess.Interfaces
         IOrderHeaderRepository OrderHeader { get; }
         IOrderDetailRepository OrderDetail { get; }
         IApplicationUserRepository ApplicationUser { get; }
+        IUserCourseProgressRepository UserCourseProgress { get; }
+        IUserVideoProgressRepository UserVideoProgress { get; }
         void Save();
+        Task SaveAsync();
     }
 }

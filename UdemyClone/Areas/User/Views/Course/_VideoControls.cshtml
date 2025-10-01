@@ -1,0 +1,44 @@
+﻿@model LearnViewModel
+
+<div class="relative z-10 border-t border-gray-700 bg-gray-800 px-6 py-4">
+    <div class="flex items-center justify-between">
+        <!-- Previous Button -->
+        <div class="flex items-center">
+            @if (Model.PreviousVideo != null)
+            {
+                <button id="previous-btn" onclick="loadVideo('@Model.PreviousVideo.Id')"
+                        class="flex cursor-pointer items-center space-x-2 rounded-lg bg-gray-700 px-4 py-2 transition-colors hover:bg-gray-600">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Previous</span>
+                </button>
+            }
+            else
+            {
+                <button id="previous-btn" class="flex cursor-not-allowed items-center space-x-2 rounded-lg bg-gray-700 px-4 py-2 opacity-50" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Previous</span>
+                </button>
+            }
+        </div>
+
+
+        <!-- Next Button -->
+        <div class="flex items-center">
+            @if (Model.NextVideo != null)
+            {
+                <button id="next-btn" onclick="loadVideo('@Model.NextVideo.Id')"
+                        class="flex cursor-pointer items-center space-x-2 rounded-lg bg-orange-600 px-4 py-2 transition-colors hover:bg-orange-700">
+                    <span>Next</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            }
+            else
+            {
+                <button id="next-btn" class="flex cursor-not-allowed items-center space-x-2 rounded-lg bg-gray-700 px-4 py-2 opacity-50" disabled>
+                    <span>Next</span>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            }
+        </div>
+    </div>
+</div>

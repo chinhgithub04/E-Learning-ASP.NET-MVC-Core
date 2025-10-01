@@ -1,0 +1,255 @@
+﻿@model IEnumerable<UdemyClone.Models.OrderHeader>
+
+@{
+    var courses = new List<Course>();
+    foreach (var orderHeader in Model)
+    {
+        foreach (var orderDetail in orderHeader.OrderDetails)
+        {
+            courses.Add(orderDetail.Course);
+        }
+    }
+}
+
+<div class="space-y-6">
+    @if (courses.Any())
+    {
+        <!-- Header Section -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">My Courses</h2>
+                <p class="text-gray-600">@courses.Count() course@(courses.Count() != 1 ? "s" : "") enrolled</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <!-- Sort Dropdown -->
+                <select class="rounded-md border-gray-300 text-sm focus:border-orange-500 focus:ring-orange-500">
+                    <option value="recent">Recently Accessed</option>
+                    <option value="title">Title A-Z</option>
+                    <option value="progress">Progress</option>
+                </select>
+                <!-- View Toggle -->
+                <div class="flex rounded-lg border border-gray-300">
+                    <button class="view-toggle rounded-l-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-900" data-view="grid">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button class="view-toggle rounded-r-lg px-3 py-2 text-sm font-medium text-gray-700" data-view="list">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Grid View -->
+        <div id="grid-view" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            @foreach (var course in courses)
+            {
+                <div class="group overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
+                    <!-- Course Image -->
+                    <div class="relative aspect-video overflow-hidden">
+                        @if (!string.IsNullOrEmpty(course.ImageUrl))
+                        {
+                            <img src="@course.ImageUrl" alt="@course.Title" class="h-full w-full object-cover transition-all duration-300 group-hover:brightness-90">
+                        }
+                        else
+                        {
+                            <div class="flex h-full w-full items-center justify-center bg-gray-200">
+                                <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                        }
+
+                        <!-- Progress Overlay -->
+                        <div class="bg-opacity-75 absolute right-0 bottom-0 left-0 bg-black p-2">
+                            <div class="flex items-center justify-between text-xs text-white">
+                                <span>Progress: 0%</span>
+                                <span>0/0 lectures</span>
+                            </div>
+                            <div class="mt-1 h-1 w-full rounded-full bg-gray-600">
+                                <div class="h-1 rounded-full bg-orange-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Play Button Overlay -->
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                            <button class="bg-opacity-90 rounded-full bg-white p-3 shadow-lg transition-transform duration-300 hover:scale-110">
+                                <svg class="h-6 w-6 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Course Content -->
+                    <div class="p-4">
+                        <!-- Instructor -->
+                        @if (course.Instructor?.ApplicationUser != null)
+                        {
+                            <div class="mb-2 text-sm text-gray-600">
+                                by @course.Instructor.ApplicationUser.FirstName @course.Instructor.ApplicationUser.LastName
+                            </div>
+                        }
+
+                        <!-- Title -->
+                        <h3 class="mb-2 line-clamp-2 text-lg font-semibold text-gray-900 group-hover:text-orange-600">
+                            @course.Title
+                        </h3>
+
+                        <!-- Course Meta -->
+                        <div class="flex items-center space-x-4 text-sm text-gray-500">
+                            @if (course.Duration.HasValue)
+                            {
+                                <span class="flex items-center">
+                                    <i class="fas fa-clock mr-1 text-orange-500"></i>
+                                    @if (course.Duration.Value.TotalHours >= 1)
+                                    {
+                                        @($"{(int)course.Duration.Value.TotalHours}h {course.Duration.Value.Minutes}m")
+                                    }
+                                    else
+                                    {
+                                        @($"{course.Duration.Value.Minutes}m")
+                                    }
+                                </span>
+                            }
+                            @if (course.CourseLevel != null)
+                            {
+                                <span class="flex items-center">
+                                    <i class="fas fa-signal mr-1 text-orange-500"></i>
+                                    @course.CourseLevel.Name
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="mt-4 flex space-x-2">
+                            <a href="#" class="flex-1 rounded-md bg-orange-500 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-orange-600">
+                                Continue Learning
+                            </a>
+                            <button class="rounded-md border border-gray-300 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-50">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Course List View -->
+        <div id="list-view" class="hidden space-y-4">
+            @foreach (var course in courses)
+            {
+                <div class="group flex overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-lg">
+                    <!-- Course Image -->
+                    <div class="relative w-48 flex-shrink-0">
+                        <div class="aspect-video overflow-hidden">
+                            @if (!string.IsNullOrEmpty(course.ImageUrl))
+                            {
+                                <img src="@course.ImageUrl" alt="@course.Title" class="h-full w-full object-cover">
+                            }
+                            else
+                            {
+                                <div class="flex h-full w-full items-center justify-center bg-gray-200">
+                                    <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Play Button Overlay -->
+                        <div class="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                            <button class="bg-opacity-90 rounded-full bg-white p-2 shadow-lg">
+                                <svg class="h-4 w-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Course Content -->
+                    <div class="flex flex-1 flex-col justify-between p-4">
+                        <div>
+                            <!-- Instructor -->
+                            @if (course.Instructor?.ApplicationUser != null)
+                            {
+                                <div class="mb-1 text-sm text-gray-600">
+                                    by @course.Instructor.ApplicationUser.FirstName @course.Instructor.ApplicationUser.LastName
+                                </div>
+                            }
+
+                            <!-- Title -->
+                            <h3 class="mb-2 text-lg font-semibold text-gray-900 group-hover:text-orange-600">
+                                @course.Title
+                            </h3>
+
+                            <!-- Course Meta -->
+                            <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                @if (course.Duration.HasValue)
+                                {
+                                    <span class="flex items-center">
+                                        <i class="fas fa-clock mr-1 text-orange-500"></i>
+                                        @if (course.Duration.Value.TotalHours >= 1)
+                                        {
+                                            @($"{(int)course.Duration.Value.TotalHours}h {course.Duration.Value.Minutes}m")
+                                        }
+                                        else
+                                        {
+                                            @($"{course.Duration.Value.Minutes}m")
+                                        }
+                                    </span>
+                                }
+                                @if (course.CourseLevel != null)
+                                {
+                                    <span class="flex items-center">
+                                        <i class="fas fa-signal mr-1 text-orange-500"></i>
+                                        @course.CourseLevel.Name
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Progress and Actions -->
+                        <div class="mt-4">
+                            <!-- Progress Bar -->
+                            <div class="mb-3">
+                                <div class="flex items-center justify-between text-sm text-gray-600">
+                                    <span>Progress: 0%</span>
+                                    <span>0/0 lectures completed</span>
+                                </div>
+                                <div class="mt-1 h-2 w-full rounded-full bg-gray-200">
+                                    <div class="h-2 rounded-full bg-orange-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex items-center justify-between">
+                                <a href="#" class="rounded-md bg-orange-500 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-600">
+                                    Continue Learning
+                                </a>
+                                <button class="rounded-md border border-gray-300 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-50">
+                                    <i class="fas fa-ellipsis-h"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="flex flex-col items-center justify-center py-16">
+            <div class="mb-6">
+                <svg class="h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+            </div>
+            <h3 class="mb-2 text-xl font-semibold text-gray-900">No courses yet</h3>
+            <p class="mb-6 text-center text-gray-600">You haven't enrolled in any courses yet. Start learning today!</p>
+            <a asp-area="User" asp-controller="Home" asp-action="Index" class="rounded-md bg-orange-500 px-6 py-3 font-medium text-white transition-colors hover:bg-orange-600">
+                Browse Courses
+            </a>
+        </div>
+    }
+</div>

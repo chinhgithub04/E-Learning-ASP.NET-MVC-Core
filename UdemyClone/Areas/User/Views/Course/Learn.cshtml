@@ -1,0 +1,53 @@
+﻿@model LearnViewModel
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Model.CurrentVideo.Title - @Model.Course.Title - EduPress</title>
+    <link rel="stylesheet" href="~/css/output.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="overflow-hidden bg-gray-900 text-white">
+    <div class="flex h-screen">
+        <!-- Main Content Area -->
+        <div class="flex flex-1 flex-col transition-all duration-300" id="mainContent">
+            <!-- Top Navigation Bar -->
+            <div class="flex-shrink-0">
+                @await Html.PartialAsync("_LearnHeader", Model)
+            </div>
+
+            <!-- Video Player Section -->
+            <div class="flex min-h-0 flex-1 items-center justify-center bg-black">
+                @await Html.PartialAsync("_VideoPlayer", Model)
+            </div>
+
+            <!-- Bottom Controls -->
+            <div class="z-10 flex-shrink-0">
+                @await Html.PartialAsync("_VideoControls", Model)
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="flex w-96 flex-col border-l border-gray-700 bg-gray-800 transition-transform duration-300" id="courseSidebar">
+            @await Html.PartialAsync("_CourseSidebar", Model)
+        </div>
+    </div>
+
+    <!-- Toggle Sidebar Button -->
+    <button id="sidebarToggle" 
+            class="fixed top-1/2 right-96 z-50 flex h-12 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-lg border border-r-0 border-gray-600 bg-gray-800 text-gray-300 transition-all hover:bg-gray-700 hover:text-white"
+            title="Toggle Sidebar" 
+            aria-label="Toggle Sidebar">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/learn.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>
