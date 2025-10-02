@@ -1,0 +1,531 @@
+﻿@model SearchViewModel
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Http
+@inject UdemyClone.DataAccess.Interfaces.IUnitOfWork _unitOfWork
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewData["Title"] = !string.IsNullOrEmpty(Model.SearchQuery) ? $"Search results for \"{Model.SearchQuery}\"" : "Course Search";
+    var purchasedCourse = _unitOfWork.OrderHeader.GetAll(o => o.ApplicationUserId == User.FindFirstValue(ClaimTypes.NameIdentifier) && o.OrderStatus == OrderStatus.Completed && o.PaymentStatus == PaymentStatus.Paid && !string.IsNullOrEmpty(o.PaymentIntentId), includeProperties: "OrderDetails");
+}
+
+<div class="min-h-screen bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Search Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    @if (!string.IsNullOrEmpty(Model.SearchQuery))
+                    {
+                        <h1 class="text-3xl font-bold text-gray-900">Search results for "@Model.SearchQuery"</h1>
+                        <p class="mt-2 text-gray-600">@Model.TotalResults course@(Model.TotalResults != 1 ? "s" : "") found</p>
+                    }
+                    else
+                    {
+                        <h1 class="text-3xl font-bold text-gray-900">All Courses</h1>
+                        <p class="mt-2 text-gray-600">@Model.TotalResults course@(Model.TotalResults != 1 ? "s" : "") available</p>
+                    }
+                </div>
+                
+                <!-- Sort Dropdown -->
+                <div class="flex items-center space-x-4">
+                    <label class="text-sm font-medium text-gray-700">Sort by:</label>
+                    <div class="relative">
+                        <button type="button" id="sortDropdown" class="flex min-w-[180px] cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm transition-all hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                            <span id="sortText" class="text-gray-900">
+                                @{
+                                    var sortText = Model.SortBy switch
+                                    {
+                                        "oldest" => "Oldest",
+                                        "title" => "Title A-Z", 
+                                        "price-low-high" => "Price: Low to High",
+                                        "price-high-low" => "Price: High to Low",
+                                        "rating" => "Highest Rated",
+                                        _ => "Newest"
+                                    };
+                                }
+                                @sortText
+                            </span>
+                            <svg class="ml-2 h-4 w-4 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div id="sortMenu" class="absolute right-0 z-20 mt-1 hidden w-full min-w-[180px] rounded-lg border border-gray-200 bg-white shadow-lg">
+                            <div class="py-1">
+                                <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.SortBy == "newest" ? "bg-orange-50 text-orange-600" : "")" data-value="newest">
+                                    Newest
+                                </div>
+                                <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.SortBy == "oldest" ? "bg-orange-50 text-orange-600" : "")" data-value="oldest">
+                                    Oldest
+                                </div>
+                                <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.SortBy == "title" ? "bg-orange-50 text-orange-600" : "")" data-value="title">
+                                    Title A-Z
+                                </div>
+                                <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.SortBy == "price-low-high" ? "bg-orange-50 text-orange-600" : "")" data-value="price-low-high">
+                                    Price: Low to High
+                                </div>
+                                <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.SortBy == "price-high-low" ? "bg-orange-50 text-orange-600" : "")" data-value="price-high-low">
+                                    Price: High to Low
+                                </div>
+                                <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.SortBy == "rating" ? "bg-orange-50 text-orange-600" : "")" data-value="rating">
+                                    Highest Rated
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-8">
+            <!-- Sidebar Filters -->
+            <div class="w-64 flex-shrink-0">
+                <div class="sticky top-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                    <h3 class="mb-4 text-lg font-semibold text-gray-900">Filter Courses</h3>
+                    
+                    <form id="filterForm" method="get">
+                        <input type="hidden" name="q" value="@Model.SearchQuery" />
+                        <input type="hidden" name="categoryId" id="selectedCategoryId" value="@Model.CategoryId" />
+                        <input type="hidden" name="subcategoryId" id="selectedSubcategoryId" value="@Model.SubcategoryId" />
+                        <input type="hidden" name="courseLevelId" id="selectedCourseLevelId" value="@Model.CourseLevelId" />
+                        <input type="hidden" name="showFreeOnly" id="showFreeOnly" value="@Model.ShowFreeOnly.ToString().ToLower()" />
+                        <input type="hidden" name="showPaidOnly" id="showPaidOnly" value="@Model.ShowPaidOnly.ToString().ToLower()" />
+                        
+                        <!-- Category Filter -->
+                        <div class="mb-6">
+                            <label class="mb-3 block text-sm font-medium text-gray-700">Category</label>
+                            <div class="relative">
+                                <button type="button" id="categoryDropdown" class="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-left shadow-sm transition-all hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                                    <span id="categoryText" class="text-gray-900">
+                                        @{
+                                            var selectedCategory = Model.Categories.FirstOrDefault(c => c.Id == Model.CategoryId);
+                                        }
+                                        @(selectedCategory?.Name ?? "All Categories")
+                                    </span>
+                                    <svg class="h-5 w-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div id="categoryMenu" class="absolute z-10 mt-1 hidden w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+                                    <div class="max-h-60 overflow-auto">
+                                        <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600" data-value="" data-text="All Categories">
+                                            All Categories
+                                        </div>
+                                        @foreach (var category in Model.Categories)
+                                        {
+                                            <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.CategoryId == category.Id ? "bg-orange-50 text-orange-600" : "")" 
+                                                 data-value="@category.Id" data-text="@category.Name">
+                                                @category.Name
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subcategory Filter -->
+                        <div class="mb-6">
+                            <label class="mb-3 block text-sm font-medium text-gray-700">Subcategory</label>
+                            <div class="relative">
+                                <button type="button" id="subcategoryDropdown" class="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-left shadow-sm transition-all hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                                    <span id="subcategoryText" class="text-gray-900">
+                                        @{
+                                            var selectedSubcategory = Model.Subcategories.FirstOrDefault(s => s.Id == Model.SubcategoryId);
+                                        }
+                                        @(selectedSubcategory?.Name ?? "All Subcategories")
+                                    </span>
+                                    <svg class="h-5 w-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div id="subcategoryMenu" class="absolute z-10 mt-1 hidden w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+                                    <div class="max-h-60 overflow-auto">
+                                        <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600" data-value="" data-text="All Subcategories">
+                                            All Subcategories
+                                        </div>
+                                        @foreach (var subcategory in Model.Subcategories)
+                                        {
+                                            <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.SubcategoryId == subcategory.Id ? "bg-orange-50 text-orange-600" : "")" 
+                                                 data-value="@subcategory.Id" data-text="@subcategory.Name">
+                                                @subcategory.Name
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Course Level Filter -->
+                        <div class="mb-6">
+                            <label class="mb-3 block text-sm font-medium text-gray-700">Level</label>
+                            <div class="relative">
+                                <button type="button" id="courseLevelDropdown" class="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-left shadow-sm transition-all hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                                    <span id="courseLevelText" class="text-gray-900">
+                                        @{
+                                            var selectedLevel = Model.CourseLevels.FirstOrDefault(l => l.Id == Model.CourseLevelId);
+                                        }
+                                        @(selectedLevel?.Name ?? "All Levels")
+                                    </span>
+                                    <svg class="h-5 w-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div id="courseLevelMenu" class="absolute z-10 mt-1 hidden w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+                                    <div class="max-h-60 overflow-auto">
+                                        <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600" data-value="" data-text="All Levels">
+                                            All Levels
+                                        </div>
+                                        @foreach (var level in Model.CourseLevels)
+                                        {
+                                            <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.CourseLevelId == level.Id ? "bg-orange-50 text-orange-600" : "")" 
+                                                 data-value="@level.Id" data-text="@level.Name">
+                                                @level.Name
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price Filter -->
+                        <div class="mb-6">
+                            <label class="mb-3 block text-sm font-medium text-gray-700">Price</label>
+                            <div class="space-y-3">
+                                <label class="flex cursor-pointer items-center rounded-lg border border-gray-200 p-3 transition-all hover:border-orange-300 hover:bg-orange-50">
+                                    <input type="radio" name="priceFilter" value="all" @(!Model.ShowFreeOnly && !Model.ShowPaidOnly ? "checked" : "") class="mr-3 text-orange-600 focus:ring-orange-500">
+                                    <div class="flex items-center">
+                                        <svg class="mr-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                        </svg>
+                                        <span class="font-medium text-gray-900">All Courses</span>
+                                    </div>
+                                </label>
+                                <label class="flex cursor-pointer items-center rounded-lg border border-gray-200 p-3 transition-all hover:border-green-300 hover:bg-green-50">
+                                    <input type="radio" name="priceFilter" value="free" @(Model.ShowFreeOnly ? "checked" : "") class="mr-3 text-green-600 focus:ring-green-500">
+                                    <div class="flex items-center">
+                                        <svg class="mr-2 h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="font-medium text-gray-900">Free</span>
+                                    </div>
+                                </label>
+                                <label class="flex cursor-pointer items-center rounded-lg border border-gray-200 p-3 transition-all hover:border-blue-300 hover:bg-blue-50">
+                                    <input type="radio" name="priceFilter" value="paid" @(Model.ShowPaidOnly ? "checked" : "") class="mr-3 text-blue-600 focus:ring-blue-500">
+                                    <div class="flex items-center">
+                                        <svg class="mr-2 h-4 w-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                        </svg>
+                                        <span class="font-medium text-gray-900">Paid</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="sortBy" value="@Model.SortBy" />
+                        <input type="hidden" name="page" value="1" />
+                    </form>
+
+                    <!-- Clear Filters -->
+                    @if (!string.IsNullOrEmpty(Model.CategoryId) || !string.IsNullOrEmpty(Model.SubcategoryId) || !string.IsNullOrEmpty(Model.CourseLevelId) || Model.ShowFreeOnly || Model.ShowPaidOnly)
+                    {
+                        <a asp-action="Index" asp-route-q="@Model.SearchQuery" class="mt-3 block text-center text-sm text-orange-600 hover:text-orange-700">
+                            Clear all filters
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- Course Results -->
+            <div class="flex-1">
+                @if (Model.Courses.Any())
+                {
+                    <!-- Course Grid -->
+                    <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        @foreach (var course in Model.Courses)
+                        {
+                            var isPurchased = purchasedCourse.Any(o => o.OrderDetails.Any(od => od.CourseId == course.Id));
+                            var isInCart = HttpContextAccessor.HttpContext.Session.GetString($"Cart_{course.Id}") != null;
+                            
+                            <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md">
+                                <a asp-area="User" asp-controller="Course" asp-action="Index" asp-route-id="@course.Id" class="block">
+                                    <!-- Course Image -->
+                                    <div class="relative aspect-video overflow-hidden">
+                                        @if (!string.IsNullOrEmpty(course.ImageUrl))
+                                        {
+                                            <img src="@course.ImageUrl" alt="@course.Title" class="h-full w-full object-cover">
+                                        }
+                                        else
+                                        {
+                                            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600">
+                                                <span class="text-4xl font-bold text-white">
+                                                    @course.Title?.Substring(0, 1).ToUpper()
+                                                </span>
+                                            </div>
+                                        }
+                                        
+                                        <!-- Subcategory Badge -->
+                                        @if (course.Subcategory != null)
+                                        {
+                                            <span class="bg-opacity-70 absolute top-2 left-2 rounded bg-black px-2 py-1 text-xs text-white">
+                                                @course.Subcategory.Name
+                                            </span>
+                                        }
+                                    </div>
+
+                                    <div class="p-4">
+                                        <!-- Course Title -->
+                                        <h3 class="mb-2 line-clamp-2 font-semibold text-gray-900">@course.Title</h3>
+                                        
+                                        <!-- Instructor -->
+                                        <p class="mb-2 text-sm text-gray-600">
+                                            By @course.Instructor.ApplicationUser.FirstName @course.Instructor.ApplicationUser.LastName
+                                        </p>
+
+                                        <!-- Course Level -->
+                                        @if (course.CourseLevel != null)
+                                        {
+                                            <span class="mb-2 inline-block rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
+                                                @course.CourseLevel.Name
+                                            </span>
+                                        }
+
+                                        <!-- Rating -->
+                                        @if (course.CourseRatings != null && course.CourseRatings.Any())
+                                        {
+                                            var avgRating = course.CourseRatings.Average(r => r.Rating);
+                                            var ratingCount = course.CourseRatings.Count();
+                                            
+                                            <div class="mb-2 flex items-center">
+                                                <div class="flex items-center">
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        if (i <= avgRating)
+                                                        {
+                                                            <svg class="h-4 w-4 fill-current text-yellow-400" viewBox="0 0 20 20">
+                                                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                                            </svg>
+                                                        }
+                                                        else
+                                                        {
+                                                            <svg class="h-4 w-4 fill-current text-gray-300" viewBox="0 0 20 20">
+                                                                <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                                            </svg>
+                                                        }
+                                                    }
+                                                </div>
+                                                <span class="ml-2 text-sm text-gray-600">@avgRating.ToString("F1") (@ratingCount)</span>
+                                            </div>
+                                        }
+
+                                        <!-- Price -->
+                                        <div class="flex items-center justify-between">
+                                            @if (course.Price.HasValue && course.Price > 0)
+                                            {
+                                                <span class="text-lg font-bold text-orange-600">@course.Price.Value.ToString("C")</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-lg font-bold text-green-600">Free</span>
+                                            }
+
+                                            @if (isPurchased)
+                                            {
+                                                <span class="text-sm font-medium text-green-600">Purchased</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Pagination -->
+                    @if (Model.TotalPages > 1)
+                    {
+                        <div class="flex justify-center">
+                            <nav class="flex items-center space-x-2">
+                                @if (Model.CurrentPage > 1)
+                                {
+                                    <a asp-action="Index" asp-all-route-data="@ViewContext.HttpContext.Request.Query.ToDictionary(q => q.Key, q => q.Value.ToString())" asp-route-page="@(Model.CurrentPage - 1)" 
+                                       class="px-3 py-2 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
+                                        Previous
+                                    </a>
+                                }
+
+                                @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                                {
+                                    @if (i == Model.CurrentPage)
+                                    {
+                                        <span class="rounded-md bg-orange-600 px-3 py-2 text-white">@i</span>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="Index" asp-all-route-data="@ViewContext.HttpContext.Request.Query.ToDictionary(q => q.Key, q => q.Value.ToString())" asp-route-page="@i" 
+                                           class="px-3 py-2 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
+                                            @i
+                                        </a>
+                                    }
+                                }
+
+                                @if (Model.CurrentPage < Model.TotalPages)
+                                {
+                                    <a asp-action="Index" asp-all-route-data="@ViewContext.HttpContext.Request.Query.ToDictionary(q => q.Key, q => q.Value.ToString())" asp-route-page="@(Model.CurrentPage + 1)" 
+                                       class="px-3 py-2 rounded-md bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
+                                        Next
+                                    </a>
+                                }
+                            </nav>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <!-- No Results -->
+                    <div class="py-12 text-center">
+                        <div class="mb-4 text-gray-400">
+                            <svg class="mx-auto h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.582-4.29-3.53 0-.177.013-.352.037-.526m-.037.526A7.962 7.962 0 0112 15c2.34 0 4.29-1.582 4.29-3.53 0-.177-.013-.352-.037-.526m.037.526A7.958 7.958 0 0112 3c-2.34 0-4.29 1.582-4.29 3.53 0 .177.013.352.037.526"></path>
+                            </svg>
+                        </div>
+                        <h3 class="mb-2 text-lg font-medium text-gray-900">No courses found</h3>
+                        <p class="mb-4 text-gray-600">
+                            @if (!string.IsNullOrEmpty(Model.SearchQuery))
+                            {
+                                <span>We couldn't find any courses matching "@Model.SearchQuery".</span>
+                            }
+                            else
+                            {
+                                <span>No courses match your current filters.</span>
+                            }
+                        </p>
+                        <a asp-action="Index" class="font-medium text-orange-600 hover:text-orange-700">
+                            View all courses
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            function initializeDropdown(buttonId, menuId, textId, hiddenInputId) {
+                const button = $('#' + buttonId);
+                const menu = $('#' + menuId);
+                const text = $('#' + textId);
+                const arrow = button.find('svg');
+                
+                button.click(function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    $('.dropdown-menu').not(menu).addClass('hidden');
+                    $('.dropdown-arrow').not(arrow).removeClass('rotate-180');
+                    
+                    menu.toggleClass('hidden');
+                    arrow.toggleClass('rotate-180');
+                });
+                
+                menu.find('[data-value]').click(function(e) {
+                    e.preventDefault();
+                    const value = $(this).data('value');
+                    const displayText = $(this).data('text') || $(this).text();
+                    
+                    text.text(displayText);
+                    
+                    if (hiddenInputId) {
+                        $('#' + hiddenInputId).val(value);
+                    }
+                    
+                    menu.find('[data-value]').removeClass('bg-orange-50 text-orange-600');
+                    $(this).addClass('bg-orange-50 text-orange-600');
+                    
+                    menu.addClass('hidden');
+                    arrow.removeClass('rotate-180');
+                    
+                    if (buttonId !== 'sortDropdown') {
+                        setTimeout(() => $('#filterForm').submit(), 100);
+                    }
+                });
+            }
+            
+            initializeDropdown('categoryDropdown', 'categoryMenu', 'categoryText', 'selectedCategoryId');
+            initializeDropdown('subcategoryDropdown', 'subcategoryMenu', 'subcategoryText', 'selectedSubcategoryId');
+            initializeDropdown('courseLevelDropdown', 'courseLevelMenu', 'courseLevelText', 'selectedCourseLevelId');
+            initializeDropdown('sortDropdown', 'sortMenu', 'sortText');
+            
+            $('#categoryMenu, #subcategoryMenu, #courseLevelMenu, #sortMenu').addClass('dropdown-menu');
+            $('#categoryDropdown svg, #subcategoryDropdown svg, #courseLevelDropdown svg, #sortDropdown svg').addClass('dropdown-arrow');
+            
+            $('#sortMenu [data-value]').click(function() {
+                const sortBy = $(this).data('value');
+                const url = new URL(window.location);
+                url.searchParams.set('sortBy', sortBy);
+                url.searchParams.set('page', '1');
+                window.location = url;
+            });
+            
+            $('#categoryMenu [data-value]').click(function() {
+                const categoryId = $(this).data('value');
+                const subcategoryMenu = $('#subcategoryMenu .max-h-60');
+                const subcategoryText = $('#subcategoryText');
+                const subcategoryInput = $('#selectedSubcategoryId');
+                
+                subcategoryText.text('All Subcategories');
+                subcategoryInput.val('');
+                
+                subcategoryMenu.html('<div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600" data-value="" data-text="All Subcategories">All Subcategories</div>');
+                
+                if (categoryId) {
+                    $.get('@Url.Action("GetSubcategories")', { categoryId: categoryId })
+                        .done(function(data) {
+                            $.each(data, function(index, subcategory) {
+                                subcategoryMenu.append(
+                                    '<div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600" data-value="' + 
+                                    subcategory.id + '" data-text="' + subcategory.name + '">' + subcategory.name + '</div>'
+                                );
+                            });
+                            
+                            subcategoryMenu.find('[data-value]').off('click').click(function(e) {
+                                e.preventDefault();
+                                const value = $(this).data('value');
+                                const displayText = $(this).data('text') || $(this).text();
+                                
+                                subcategoryText.text(displayText);
+                                subcategoryInput.val(value);
+                                
+                                subcategoryMenu.parent().parent().addClass('hidden');
+                                $('#subcategoryDropdown svg').removeClass('rotate-180');
+                                
+                                setTimeout(() => $('#filterForm').submit(), 100);
+                            });
+                        });
+                }
+            });
+            
+            $(document).click(function() {
+                $('.dropdown-menu').addClass('hidden');
+                $('.dropdown-arrow').removeClass('rotate-180');
+            });
+            
+            $('input[name="priceFilter"]').change(function() {
+                const selectedValue = $(this).val();
+                
+                if (selectedValue === 'free') {
+                    $('#showFreeOnly').val('true');
+                    $('#showPaidOnly').val('false');
+                } else if (selectedValue === 'paid') {
+                    $('#showFreeOnly').val('false');
+                    $('#showPaidOnly').val('true');
+                } else {
+                    $('#showFreeOnly').val('false');
+                    $('#showPaidOnly').val('false');
+                }
+                
+                setTimeout(() => $('#filterForm').submit(), 100);
+            });
+        });
+    </script>
+}

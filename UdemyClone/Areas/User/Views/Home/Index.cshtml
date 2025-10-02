@@ -37,8 +37,7 @@
             <div class="mt-6 grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5">
                 @foreach (var category in Model.Category)
                 {
-                    <div class="group aspect-square cursor-pointer rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-3 hover:border-orange-300 hover:shadow-lg">
-                        <!-- Icon container without background -->
+                    <a asp-area="User" asp-controller="Search" asp-action="Index" asp-route-categoryId="@category.Id" class="group aspect-square cursor-pointer rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-3 hover:border-orange-300 hover:shadow-lg">
                         <div class="flex h-full flex-col items-center justify-center">
                             <div class="mb-4">
                                 @switch (category.Name)
@@ -85,7 +84,7 @@
                                 </h3>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 }
             </div>
         </div>
@@ -97,7 +96,7 @@
                     <div class="mb-3 text-3xl font-bold text-gray-900">Featured Courses</div>
                     <div class="text-lg text-gray-600">Explore Popular Courses</div>
                 </div>
-                <button class="cursor-pointer rounded-3xl border border-gray-900 px-5 py-2 font-medium transition-colors hover:bg-gray-900 hover:text-white">All Courses</button>
+                <a asp-area="User" asp-controller="Search" asp-action="Index" class="cursor-pointer rounded-3xl border border-gray-900 px-5 py-2 font-medium transition-colors hover:bg-gray-900 hover:text-white">All Courses</a>
             </div>
 
             <!-- Course Grid -->
@@ -108,7 +107,7 @@
                     <div class="group relative">
                         <!-- Course Card -->
                         <a target="_blank" asp-area="User" asp-controller="Course" asp-action="Index" asp-route-id="@course.Id" class="block cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-xl">
-                            <!-- Course Image with Overlay Badge -->
+                            <!-- Course Image -->
                             <div class="relative aspect-video overflow-hidden">
                                 @if (!string.IsNullOrEmpty(course.ImageUrl))
                                 {

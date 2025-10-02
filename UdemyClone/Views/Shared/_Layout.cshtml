@@ -18,15 +18,14 @@
                 <a asp-area="" asp-controller="Home" asp-action="Index"><img src="~/img/logo.svg" alt="Logo" title="EduPress" class="h-8"/></a>
             </div>
             <!-- search -->
-            <div class="flex w-96 items-center rounded-full border border-gray-300 px-4 py-2 transition duration-200 focus-within:border-orange-600 focus-within:ring-2 focus-within:ring-orange-600">
-
+            <form asp-area="User" asp-controller="Search" asp-action="Index" method="get" class="flex w-96 items-center rounded-full border border-gray-300 px-4 py-2 transition duration-200 focus-within:border-orange-600 focus-within:ring-2 focus-within:ring-orange-600">
                 <div class="flex-grow">
-                    <input class="w-full text-gray-700 outline-none" type="text" placeholder="Search for anything">
+                    <input name="q" class="w-full text-gray-700 outline-none" type="text" placeholder="Search for anything" value="@Context.Request.Query["q"]">
                 </div>
-                <div class="cursor-pointer text-gray-500 hover:text-gray-700">
+                <button type="submit" class="cursor-pointer text-gray-500 hover:text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-                </div>
-            </div>
+                </button>
+            </form>
           <!-- other -->
              <div class="flex items-center space-x-6 font-medium text-gray-600">
                 @if (User.IsInRole(RoleNames.Instructor))
