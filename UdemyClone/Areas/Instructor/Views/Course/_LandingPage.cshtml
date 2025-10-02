@@ -41,35 +41,106 @@
                 <!-- Course Level -->
                 <div>
                     <label class="mb-2 block text-sm font-medium text-gray-700">Course Level</label>
-                    <select asp-for="Course.CourseLevelId" asp-items="@Model.LevelList" name="CourseLevelId" class="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500">
-                        <option value="">Select Level</option>
-                    </select>
+                    <div class="relative">
+                        <button type="button" id="courseLevelDropdown" class="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-left shadow-sm transition-all hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                            <span id="courseLevelText" class="text-gray-900">
+                                @{
+                                    var selectedLevel = Model.LevelList.FirstOrDefault(l => l.Value == Model.Course.CourseLevelId);
+                                }
+                                @(selectedLevel?.Text ?? "Select Level")
+                            </span>
+                            <svg class="h-5 w-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div id="courseLevelMenu" class="absolute z-10 mt-1 hidden w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+                            <div class="max-h-60 overflow-auto">
+                                <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600" data-value="" data-text="Select Level">
+                                    Select Level
+                                </div>
+                                @foreach (var level in Model.LevelList.Where(l => !string.IsNullOrEmpty(l.Value)))
+                                {
+                                    <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.Course.CourseLevelId == level.Value ? "bg-orange-50 text-orange-600" : "")" 
+                                         data-value="@level.Value" data-text="@level.Text">
+                                        @level.Text
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="CourseLevelId" id="selectedCourseLevelId" value="@Model.Course.CourseLevelId" />
                     <span name="course-level-validation" class="hidden text-sm font-medium text-red-600">Please select your course's level</span>
                 </div>
 
                 <!-- Category -->
                 <div>
                     <label class="mb-2 block text-sm font-medium text-gray-700">Category</label>
-                    <select asp-for="Course.CategoryId" asp-items="@Model.CategoryList" name="CategoryId" id="categorySelect" class="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500">
-                        <option value="">Select Category</option>
-                    </select>
-                    <span name="category-validation" class="hidden text-sm font-medium text-red-600">Please selece your course's category </span>
+                    <div class="relative">
+                        <button type="button" id="categoryDropdown" class="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-left shadow-sm transition-all hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                            <span id="categoryText" class="text-gray-900">
+                                @{
+                                    var selectedCategory = Model.CategoryList.FirstOrDefault(c => c.Value == Model.Course.CategoryId);
+                                }
+                                @(selectedCategory?.Text ?? "Select Category")
+                            </span>
+                            <svg class="h-5 w-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div id="categoryMenu" class="absolute z-10 mt-1 hidden w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+                            <div class="max-h-60 overflow-auto">
+                                <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600" data-value="" data-text="Select Category">
+                                    Select Category
+                                </div>
+                                @foreach (var category in Model.CategoryList.Where(c => !string.IsNullOrEmpty(c.Value)))
+                                {
+                                    <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.Course.CategoryId == category.Value ? "bg-orange-50 text-orange-600" : "")" 
+                                         data-value="@category.Value" data-text="@category.Text">
+                                        @category.Text
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="CategoryId" id="selectedCategoryId" value="@Model.Course.CategoryId" />
+                    <span name="category-validation" class="hidden text-sm font-medium text-red-600">Please select your course's category</span>
                 </div>
 
                 <!-- Subcategory -->
                 <div id="subcategoryContainer" class="@(Model.Course?.CategoryId != null ? "" : "hidden")">
                     <label class="mb-2 block text-sm font-medium text-gray-700">Subcategory</label>
-                    <select asp-for="Course.SubcategoryId" name="SubcategoryId" id="subcategorySelect" class="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500">
-                        <option value="">Select Subcategory</option>
-                        @if (Model.Course?.CategoryId != null)
-                        {
-                            @foreach (var subcategory in Model.SubcategoryList.Where(s => s.Value != null))
-                            {
-                                <option value="@subcategory.Value" selected="@(subcategory.Value == Model.Course.SubcategoryId)">@subcategory.Text</option>
-                            }
-                        }
-                    </select>
-                    <span name="subcategory-validation" class="hidden text-sm font-medium text-red-600">Please selece your course's subcategory</span>
+                    <div class="relative">
+                        <button type="button" id="subcategoryDropdown" class="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-3 text-left shadow-sm transition-all hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                            <span id="subcategoryText" class="text-gray-900">
+                                @{
+                                    var selectedSubcategory = Model.SubcategoryList.FirstOrDefault(s => s.Value == Model.Course.SubcategoryId);
+                                }
+                                @(selectedSubcategory?.Text ?? "Select Subcategory")
+                            </span>
+                            <svg class="h-5 w-5 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div id="subcategoryMenu" class="absolute z-10 mt-1 hidden w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+                            <div class="max-h-60 overflow-auto">
+                                <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600" data-value="" data-text="Select Subcategory">
+                                    Select Subcategory
+                                </div>
+                                @if (Model.Course?.CategoryId != null)
+                                {
+                                    @foreach (var subcategory in Model.SubcategoryList.Where(s => !string.IsNullOrEmpty(s.Value)))
+                                    {
+                                        <div class="cursor-pointer px-4 py-2 text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(Model.Course.SubcategoryId == subcategory.Value ? "bg-orange-50 text-orange-600" : "")" 
+                                             data-value="@subcategory.Value" data-text="@subcategory.Text">
+                                            @subcategory.Text
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="SubcategoryId" id="selectedSubcategoryId" value="@Model.Course.SubcategoryId" />
+                    <span name="subcategory-validation" class="hidden text-sm font-medium text-red-600">Please select your course's subcategory</span>
                 </div>
             </div>
         </div>

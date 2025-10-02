@@ -24,9 +24,13 @@ namespace UdemyClone.Areas.Instructor.Controllers
         public IActionResult Index(string? search = "", string sort = "created-desc")
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var courses = _unitOfWork.Course.GetAll(c => c.InstructorId == userId);
+            var courses = _unitOfWork.Course.GetAll(c => c.InstructorId == userId, includeProperties: "Instructor.ApplicationUser");
 
-            courses = courses.Where(c => c.Title.Contains(search));
+            courses = courses.Where(c => c.Title.Contains(search) ||
+                    c.Description.Contains(search) ||
+                    c.Subtitle.Contains(search) ||
+                    c.Instructor.ApplicationUser.FirstName.Contains(search) ||
+                    c.Instructor.ApplicationUser.LastName.Contains(search));
 
             courses = sort switch
             {
@@ -1017,14 +1021,14 @@ namespace UdemyClone.Areas.Instructor.Controllers
             {
                 if (string.IsNullOrEmpty(id))
                 {
-                    return Json(new { success = false, message = "Id not found" });
+                    return Json(new { success = false, message = "Course ID is required." });
                 }
 
-                var course = _unitOfWork.Course.Get(c => c.Id == id);
+                var course = _unitOfWork.Course.Get(c => c.Id == id, includeProperties: "CourseSections,CourseSections.CourseVideos,CourseSections.CourseVideos.CourseResources");
 
                 if (course == null)
                 {
-                    return Json(new { success = false, message = "Course not found" });
+                    return Json(new { success = false, message = "Course not found." });
                 }
 
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -1033,10 +1037,50 @@ namespace UdemyClone.Areas.Instructor.Controllers
                     return Json(new { success = false, message = "Unauthorized access." });
                 }
 
+                var enrolledStudents = _unitOfWork.OrderHeader.GetAll(
+                    o => o.OrderDetails.Any(od => od.CourseId == id) && 
+                         o.OrderStatus == OrderStatus.Completed && 
+                         o.PaymentStatus == PaymentStatus.Paid,
+                    includeProperties: "OrderDetails"
+                );
+
+                if (enrolledStudents.Any())
+                {
+                    return Json(new { success = false, message = "Cannot delete course with enrolled students. This course has active enrollments.", hasEnrollments = true });
+                }
+
+                foreach (var section in course.CourseSections)
+                {
+                    foreach (var video in section.CourseVideos)
+                    {
+                        if (!string.IsNullOrEmpty(video.VideoUrl))
+                        {
+                            FileHelper.DeleteFile(video.VideoUrl, _webHostEnvironment);
+                        }
+
+                        foreach (var resource in video.CourseResources)
+                        {
+                            if (!string.IsNullOrEmpty(resource.ResourceUrl))
+                            {
+                                FileHelper.DeleteFile(resource.ResourceUrl, _webHostEnvironment);
+                            }
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(course.ImageUrl))
+                {
+                    FileHelper.DeleteFile(course.ImageUrl, _webHostEnvironment);
+                }
+
+                if (!string.IsNullOrEmpty(course.PromotionVideoUrl))
+                {
+                    FileHelper.DeleteFile(course.PromotionVideoUrl, _webHostEnvironment);
+                }
 
                 _unitOfWork.Course.Remove(course);
                 _unitOfWork.Save();
-                return Json(new { success = true, message = "Deleted successfully." });
+                return Json(new { success = true, message = "Course deleted successfully!" });
             }
             catch (Exception ex)
             {
@@ -1103,6 +1147,31 @@ namespace UdemyClone.Areas.Instructor.Controllers
                 "settings" => PartialView("_Settings", course),
                 _ => PartialView("_IntendedLearners", course)
             };
+        }
+
+        [HttpGet]
+        public IActionResult CheckCourseEnrollments(string courseId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(courseId))
+                {
+                    return Json(new { hasEnrollments = false });
+                }
+
+                var enrolledStudents = _unitOfWork.OrderHeader.GetAll(
+                    o => o.OrderDetails.Any(od => od.CourseId == courseId) && 
+                         o.OrderStatus == OrderStatus.Completed && 
+                         o.PaymentStatus == PaymentStatus.Paid,
+                    includeProperties: "OrderDetails"
+                );
+
+                return Json(new { hasEnrollments = enrolledStudents.Any() });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { hasEnrollments = false });
+            }
         }
     }
 

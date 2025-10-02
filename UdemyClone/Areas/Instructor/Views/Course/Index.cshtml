@@ -23,19 +23,50 @@
     <div class="flex items-center gap-3">
         <span class="text-sm font-medium text-gray-700">Sort by:</span>
         <div class="relative">
-            <select id="sortSelect" class="cursor-pointer appearance-none rounded-lg border border-gray-300 bg-white px-4 py-2 pr-8 text-sm text-gray-900 shadow-sm transition-all duration-200 hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 focus:outline-none">
-                <option value="created-desc" selected="@(ViewBag.CurrentSort == "created-desc")">Newest First</option>
-                <option value="created-asc" selected="@(ViewBag.CurrentSort == "created-asc")">Oldest First</option>
-                <option value="title-asc" selected="@(ViewBag.CurrentSort == "title-asc")">Title (A-Z)</option>
-                <option value="title-desc" selected="@(ViewBag.CurrentSort == "title-desc")">Title (Z-A)</option>
-                <option value="updated-desc" selected="@(ViewBag.CurrentSort == "updated-desc")">Recently Updated</option>
-                <option value="price-desc" selected="@(ViewBag.CurrentSort == "price-desc")">Price (High to Low)</option>
-                <option value="price-asc" selected="@(ViewBag.CurrentSort == "price-asc")">Price (Low to High)</option>
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                    <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+            <button type="button" id="sortDropdown" class="flex min-w-[180px] cursor-pointer items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm transition-all hover:border-orange-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                <span id="sortText" class="text-gray-900">
+                    @{
+                        var sortText = ViewBag.CurrentSort switch
+                        {
+                            "created-asc" => "Oldest First",
+                            "title-asc" => "Title (A-Z)", 
+                            "title-desc" => "Title (Z-A)",
+                            "updated-desc" => "Recently Updated",
+                            "price-desc" => "Price (High to Low)",
+                            "price-asc" => "Price (Low to High)",
+                            _ => "Newest First"
+                        };
+                    }
+                    @sortText
+                </span>
+                <svg class="ml-2 h-4 w-4 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
+            </button>
+            <div id="sortMenu" class="absolute right-0 z-20 mt-1 hidden w-full min-w-[180px] rounded-lg border border-gray-200 bg-white shadow-lg">
+                <div class="py-1">
+                    <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(ViewBag.CurrentSort == "created-desc" ? "bg-orange-50 text-orange-600" : "")" data-value="created-desc">
+                        Newest First
+                    </div>
+                    <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(ViewBag.CurrentSort == "created-asc" ? "bg-orange-50 text-orange-600" : "")" data-value="created-asc">
+                        Oldest First
+                    </div>
+                    <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(ViewBag.CurrentSort == "title-asc" ? "bg-orange-50 text-orange-600" : "")" data-value="title-asc">
+                        Title (A-Z)
+                    </div>
+                    <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(ViewBag.CurrentSort == "title-desc" ? "bg-orange-50 text-orange-600" : "")" data-value="title-desc">
+                        Title (Z-A)
+                    </div>
+                    <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(ViewBag.CurrentSort == "updated-desc" ? "bg-orange-50 text-orange-600" : "")" data-value="updated-desc">
+                        Recently Updated
+                    </div>
+                    <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(ViewBag.CurrentSort == "price-desc" ? "bg-orange-50 text-orange-600" : "")" data-value="price-desc">
+                        Price (High to Low)
+                    </div>
+                    <div class="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-orange-50 hover:text-orange-600 @(ViewBag.CurrentSort == "price-asc" ? "bg-orange-50 text-orange-600" : "")" data-value="price-asc">
+                        Price (Low to High)
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -117,12 +148,43 @@
         }
     </div>
 }
+else
+{
+    <!-- No Courses Found -->
+    <div class="py-12 text-center">
+        <div class="mb-4 text-gray-400">
+            <svg class="mx-auto h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+        </div>
+        <h3 class="mb-2 text-lg font-medium text-gray-900">No courses found</h3>
+        <p class="mb-4 text-gray-600">
+            @if (!string.IsNullOrEmpty(ViewBag.CurrentSearch))
+            {
+                <span>We couldn't find any courses matching "@ViewBag.CurrentSearch".</span>
+            }
+            else
+            {
+                <span>You haven't created any courses yet.</span>
+            }
+        </p>
+        <a asp-action="Create" asp-route-step="1" class="inline-flex items-center rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700">
+            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Create Your First Course
+        </a>
+    </div>
+}
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const url = new URL(window.location);
-        const sortSelect = document.getElementById('sortSelect');
         const btnSearchCourse = document.getElementById('search-course-btn');
+        const sortDropdown = document.getElementById('sortDropdown');
+        const sortMenu = document.getElementById('sortMenu');
+        const sortText = document.getElementById('sortText');
+        const arrow = sortDropdown.querySelector('svg');
 
         btnSearchCourse.addEventListener('click', () => {
             const searchValue = document.getElementById('default-search').value;
@@ -130,12 +192,46 @@
             window.location.href = url.toString();
         });
 
-        sortSelect.addEventListener('change', function() {
-            const sortValue = this.value;
-            url.searchParams.set('sort', sortValue);
-            window.location.href = url.toString();
+        document.getElementById('default-search').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const searchValue = this.value;
+                url.searchParams.set('search', searchValue);
+                window.location.href = url.toString();
+            }
         });
 
-    });
+        sortDropdown.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            sortMenu.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
+        });
 
+        sortMenu.querySelectorAll('[data-value]').forEach(function(option) {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sortValue = this.getAttribute('data-value');
+                const displayText = this.textContent.trim();
+                
+                sortText.textContent = displayText;
+                
+                sortMenu.querySelectorAll('[data-value]').forEach(opt => {
+                    opt.classList.remove('bg-orange-50', 'text-orange-600');
+                });
+                this.classList.add('bg-orange-50', 'text-orange-600');
+                
+                sortMenu.classList.add('hidden');
+                arrow.classList.remove('rotate-180');
+                
+                url.searchParams.set('sort', sortValue);
+                window.location.href = url.toString();
+            });
+        });
+
+        document.addEventListener('click', function() {
+            sortMenu.classList.add('hidden');
+            arrow.classList.remove('rotate-180');
+        });
+    });
 </script>

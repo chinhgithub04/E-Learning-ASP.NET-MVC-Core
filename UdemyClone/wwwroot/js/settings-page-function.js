@@ -6,6 +6,9 @@
         return;
     }
 
+    // Check enrollment status when page loads
+    checkCourseEnrollments();
+
     courseStatusForm.addEventListener('click', (e) => {
         const target = e.target;
 
@@ -47,6 +50,17 @@
             }
 
             if (target.id === 'delete-course') {
+                if (target.disabled) {
+                    Swal.fire({
+                        title: 'Cannot Delete Course',
+                        text: "This course cannot be deleted because students are currently enrolled. You can unpublish the course to prevent new enrollments.",
+                        icon: 'warning',
+                        confirmButtonText: 'Got it',
+                        confirmButtonColor: '#3085d6'
+                    });
+                    return;
+                }
+
                 Swal.fire({
                     title: 'Delete your course?',
                     text: "Are you sure you want to delete this course? This is permanent and cannot be undone.",
@@ -58,7 +72,7 @@
                     confirmButtonText: 'Yes, delete it!'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        target.textContent = 'Publishing';
+                        target.textContent = 'Deleting...';
                         target.disabled = true;
                         deleteCourse();
                     }
@@ -66,6 +80,35 @@
             }
         }
     });
+
+    function checkCourseEnrollments() {
+        fetch(`/Instructor/Course/CheckCourseEnrollments?courseId=${courseIdValue}`)
+            .then(response => response.json())
+            .then(data => {
+                const deleteButton = document.getElementById('delete-course');
+                const warningText = document.getElementById('delete-warning-text');
+                
+                if (data.hasEnrollments) {
+                    deleteButton.disabled = true;
+                    deleteButton.classList.add('cursor-not-allowed', 'opacity-50');
+                    deleteButton.classList.remove('hover:bg-red-100');
+                    warningText.textContent = 'This course cannot be deleted because students are enrolled.';
+                    warningText.classList.remove('text-gray-500');
+                    warningText.classList.add('text-red-600', 'font-medium');
+                } else {
+                    deleteButton.disabled = false;
+                    deleteButton.classList.remove('cursor-not-allowed', 'opacity-50');
+                    deleteButton.classList.add('hover:bg-red-100');
+                    warningText.textContent = 'You cannot delete your course after students have enrolled.';
+                    warningText.classList.remove('text-red-600', 'font-medium');
+                    warningText.classList.add('text-gray-500');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking enrollments:', error);
+                // Default to allowing deletion if check fails
+            });
+    }
 
     function publishCourse() {
         fetch('/Instructor/Course/PublishCourse', {
@@ -116,6 +159,9 @@
                     if (settingsStatusContainer.firstElementChild) {
                         settingsStatusContainer.replaceChild(publishCourseContainer, settingsStatusContainer.firstElementChild);
                     }
+
+                    document.getElementById('courseStatusBadge').textContent = 'PUBLISHED';
+
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -187,6 +233,9 @@
                     if (settingsStatusContainer.firstElementChild) {
                         settingsStatusContainer.replaceChild(unpublishCourseContainer, settingsStatusContainer.firstElementChild);
                     }
+
+                    document.getElementById('courseStatusBadge').textContent = 'UNPUBLISHED';
+
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -229,30 +278,51 @@
                         showConfirmButton: false,
                         timer: 1500
                     }).then(() => {
-                        // Redirect về trang Instructor/Course
+                        // Redirect to courses page
                         window.location.href = "/Instructor/Course";
                     });
                 } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Delete  Failed',
-                        toast: true,
-                        text: data.message,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
+                    // Reset button state
+                    const deleteButton = document.getElementById('delete-course');
+                    deleteButton.textContent = 'Delete Course';
+                    deleteButton.disabled = false;
+
+                    if (data.hasEnrollments) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Cannot Delete Course',
+                            text: 'This course cannot be deleted because students are currently enrolled. You can unpublish the course to prevent new enrollments.',
+                            confirmButtonText: 'Understood',
+                            confirmButtonColor: '#3085d6',
+                            width: '500px'
+                        });
+                        // Update UI to reflect enrollment status
+                        checkCourseEnrollments();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Delete Failed',
+                            text: data.message,
+                            confirmButtonText: 'Try Again',
+                            confirmButtonColor: '#ef4444',
+                            width: '450px'
+                        });
+                    }
                 }
             })
             .catch(error => {
+                // Reset button state
+                const deleteButton = document.getElementById('delete-course');
+                deleteButton.textContent = 'Delete Course';
+                deleteButton.disabled = false;
+
                 Swal.fire({
                     icon: 'error',
-                    title: 'Delete  Failed',
-                    toast: error.message,
-                    text: data.message,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
+                    title: 'Delete Failed',
+                    text: 'An error occurred while deleting the course. Please try again.',
+                    confirmButtonText: 'Try Again',
+                    confirmButtonColor: '#ef4444',
+                    width: '450px'
                 });
             })
     }
