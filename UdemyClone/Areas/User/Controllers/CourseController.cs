@@ -306,10 +306,27 @@ namespace UdemyClone.Areas.User.Controllers
             return PartialView("_Curriculum", course);
         }
 
-        public IActionResult Instructor(string id)
+        public async Task<IActionResult> Instructor(string id)
         {
-            var course = _unitOfWork.Course.Get(c => c.Id == id, includeProperties: "Instructor.ApplicationUser");
-            return PartialView("_Instructor", course);
+            var course = _unitOfWork.Course.Get(c => c.Id == id, includeProperties: "Instructor,Instructor.ApplicationUser");
+            
+            if (course?.Instructor == null)
+            {
+                return PartialView("_Instructor", new InstructorStatsViewModel { Course = course });
+            }
+
+            var instructorStats = new InstructorStatsViewModel
+            {
+                Course = course,
+                TotalCourses = await _unitOfWork.Instructor.GetTotalCoursesAsync(course.InstructorId),
+                TotalStudents = await _unitOfWork.Instructor.GetTotalStudentsAsync(course.InstructorId)
+            };
+
+            var (averageRating, totalRatings) = await _unitOfWork.Instructor.GetRatingStatsAsync(course.InstructorId);
+            instructorStats.AverageRating = averageRating;
+            instructorStats.TotalRatings = totalRatings;
+
+            return PartialView("_Instructor", instructorStats);
         }
 
         public IActionResult Review(string id)

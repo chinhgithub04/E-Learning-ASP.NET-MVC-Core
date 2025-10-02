@@ -3,29 +3,46 @@
 
 @if (SignInManager.IsSignedIn(User))
 {
+    var user = UserManager.GetUserAsync(User).Result;
+    var roles = UserManager.GetRolesAsync(user).Result;
+
     <div class="relative z-10" id="dropDownContainer">
-        <div id="dropdownButton" class="cursor-pointer rounded-full border-2 border-orange-500 p-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-        </div>
-        <div id="dropdownMenu" class="absolute right-0 mt-2 hidden divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white whitespace-nowrap shadow-sm">
-            <div class="flex items-center gap-2 px-3 py-2">
-                <div class="rounded-full border-2 border-orange-500 p-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+        <div id="dropdownButton" class="cursor-pointer rounded-full border-2 border-orange-500 p-0.5">
+            @if (!string.IsNullOrEmpty(user.AvatarUrl))
+            {
+                <img src="@user.AvatarUrl" alt="@user.FirstName" class="h-8 w-8 rounded-full object-cover" />
+            }
+            else
+            {
+                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100">
+                    <span class="text-sm font-semibold text-orange-600">@user.FirstName?.Substring(0, 1)@user.LastName?.Substring(0, 1)</span>
                 </div>
-                <div>
+            }
+        </div>
+        <div id="dropdownMenu" class="absolute right-0 mt-2 hidden w-64 divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white shadow-lg">
+            <div class="flex items-center gap-3 px-4 py-3">
+                @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                {
+                    <img src="@user.AvatarUrl" alt="@user.FirstName" class="h-10 w-10 rounded-full border-2 border-orange-500 object-cover" />
+                }
+                else
+                {
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-orange-500 bg-orange-100">
+                        <span class="font-semibold text-orange-600">@user.FirstName?.Substring(0, 1)@user.LastName?.Substring(0, 1)</span>
+                    </div>
+                }
+                <div class="min-w-0 flex-1">
                     @{
-                        var user = UserManager.GetUserAsync(User).Result;
-                        var roles = UserManager.GetRolesAsync(user).Result;
 
                         if (roles.Contains(RoleNames.Admin))
                         {
-                            <div class="text-gray-800">@user.FirstName</div>
+                            <div class="truncate font-medium text-gray-800">@user.FirstName</div>
                         }
                         else
                         {
-                            <div class="text-gray-800">@user.FirstName @user.LastName</div>
+                            <div class="truncate font-medium text-gray-800">@user.FirstName @user.LastName</div>
                         }
-                        <div class="text-sm text-gray-400">@user.Email</div>
+                        <div class="truncate text-sm text-gray-500">@user.Email</div>
                     }
                 </div>
             </div>
